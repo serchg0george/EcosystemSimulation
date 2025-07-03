@@ -1,5 +1,5 @@
 package enums;
 
-public enum Herbivore {
+public enum HerbivoreKind {
     ZEBRA, HARE, GAZELLE, BUFFALO
 }
