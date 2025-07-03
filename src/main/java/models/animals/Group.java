@@ -1,25 +1,22 @@
 package models.animals;
 
 import java.util.List;
+import java.util.Map;
 
 public class Group {
-    private final String groupName;
-    private final List<Animal> groupedAnimals;
+    private final Map<String, List<Animal>> groupedAnimals;
 
-    public Group(String groupName, List<Animal> groupedAnimals) {
-        this.groupName = groupName;
+    public Group(Map<String, List<Animal>> groupedAnimals) {
         this.groupedAnimals = groupedAnimals;
     }
 
-    private void addToGroup(Animal animal) {
-        groupedAnimals.add(animal);
+    public void addNewMember(Animal animal) {
+        List<Animal> animals = groupedAnimals.get(animal.getGroupName());
+        animals.add(animal);
+        groupedAnimals.put(animal.getGroupName(), animals);
     }
 
-    public String getGroupName() {
-        return groupName;
-    }
-
-    public List<Animal> getGroup() {
+    public Map<String, List<Animal>> getGroupedAnimals() {
         return groupedAnimals;
     }
 }
