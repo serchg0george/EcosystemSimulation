@@ -1,5 +1,5 @@
 package enums;
 
-public enum Biomes {
+public enum Biome {
     SAVANNA, TUNDRA, TROPICAL_FOREST, DESERT
 }

@@ -1,5 +1,5 @@
 package enums;
 
-public enum Habitats {
+public enum Habitat {
     LAND, WATER, AIR
 }

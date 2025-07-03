@@ -1,5 +1,5 @@
 package enums;
 
-public enum Carnivores {
+public enum Carnivore {
     LION, TIGER, HYENA, CHEETAH
 }
