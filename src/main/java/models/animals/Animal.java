@@ -1,11 +1,8 @@
 package models.animals;
 
-import enums.AnimalType;
-import enums.Biome;
-import enums.Habitat;
-import enums.LivingType;
+import enums.*;
 
-import java.util.List;
+import java.util.Set;
 
 public abstract class Animal {
     private final int maxAge;
@@ -14,12 +11,26 @@ public abstract class Animal {
     private final Habitat mainHabitat;
     private final AnimalType animalType;
     private final LivingType livingType;
-    private final List<Biome> biomes;
+    private final Set<Biome> biomes;
+    private final AnimalKind animalKind;
     private int currentAge;
     private boolean isAlive;
     private boolean isInGroup;
+    private String groupName;
 
-    public Animal(List<Biome> biomes, int currentAge, boolean isAlive, int maxAge, double weight, int reproductiveRate, Habitat mainHabitat, AnimalType animalType, LivingType livingType, boolean isInGroup) {
+    public Animal(Set<Biome> biomes,
+                  int currentAge,
+                  boolean isAlive,
+                  int maxAge,
+                  double weight,
+                  int reproductiveRate,
+                  Habitat mainHabitat,
+                  AnimalType animalType,
+                  LivingType livingType,
+                  AnimalKind animalKind,
+                  boolean isInGroup,
+                  String groupName) {
+
         this.biomes = biomes;
         this.currentAge = currentAge;
         this.isAlive = isAlive;
@@ -29,7 +40,15 @@ public abstract class Animal {
         this.mainHabitat = mainHabitat;
         this.animalType = animalType;
         this.livingType = livingType;
+        this.animalKind = animalKind;
         this.isInGroup = isInGroup;
+        this.groupName = groupName;
+    }
+
+    protected abstract Animal breed(Animal animal);
+
+    protected int growUp(int currentAge) {
+        return ++currentAge;
     }
 
     public int getMaxAge() {
@@ -56,7 +75,7 @@ public abstract class Animal {
         return livingType;
     }
 
-    public List<Biome> getBiomes() {
+    public Set<Biome> getBiomes() {
         return biomes;
     }
 
@@ -70,5 +89,13 @@ public abstract class Animal {
 
     public boolean isInGroup() {
         return isInGroup;
+    }
+
+    public AnimalKind getAnimalKind() {
+        return animalKind;
+    }
+
+    public String getGroupName() {
+        return groupName;
     }
 }
