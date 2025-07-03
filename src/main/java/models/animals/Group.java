@@ -19,7 +19,7 @@ public class Group {
         return groupName;
     }
 
-    public List<Animal> getGroupedAnimals() {
+    public List<Animal> getGroup() {
         return groupedAnimals;
     }
 }
