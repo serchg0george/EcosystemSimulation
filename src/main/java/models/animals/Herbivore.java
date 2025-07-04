@@ -7,7 +7,20 @@ import java.util.Set;
 public class Herbivore extends Animal {
     private final int escapePoints;
 
-    public Herbivore(Set<Biome> biomes, int currentAge, boolean isAlive, int maxAge, double weight, int reproductiveRate, Habitat mainHabitat, AnimalType animalType, AnimalKind animalKind, LivingType livingType, boolean isInGroup, int escapePoints, String groupName) {
+    public Herbivore(Set<Biome> biomes,
+                     int currentAge,
+                     boolean isAlive,
+                     int maxAge,
+                     int weight,
+                     int reproductiveRate,
+                     Habitat mainHabitat,
+                     AnimalType animalType,
+                     AnimalKind animalKind,
+                     LivingType livingType,
+                     boolean isInGroup,
+                     int escapePoints,
+                     String groupName) {
+
         super(biomes, currentAge, isAlive, maxAge, weight, reproductiveRate, mainHabitat, animalType, animalKind, livingType, isInGroup, groupName);
         this.escapePoints = escapePoints;
     }

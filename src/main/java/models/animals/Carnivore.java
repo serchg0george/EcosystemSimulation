@@ -12,7 +12,7 @@ public class Carnivore extends Animal {
                      int currentAge,
                      boolean isAlive,
                      int maxAge,
-                     double weight,
+                     int weight,
                      int reproductiveRate,
                      Habitat mainHabitat,
                      AnimalType animalType,

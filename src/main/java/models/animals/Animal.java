@@ -6,13 +6,15 @@ import java.util.Set;
 
 public abstract class Animal {
     private final int maxAge;
-    private final double weight;
+    private final int weight;
     private final int reproductiveRate;
     private final Habitat mainHabitat;
     private final AnimalType animalType;
     private final LivingType livingType;
     private final Set<Biome> biomes;
     private final AnimalKind animalKind;
+    private final long id;
+    private static long nextId = 0;
     private int currentAge;
     private boolean isAlive;
     private boolean isInGroup;
@@ -22,7 +24,7 @@ public abstract class Animal {
                   int currentAge,
                   boolean isAlive,
                   int maxAge,
-                  double weight,
+                  int weight,
                   int reproductiveRate,
                   Habitat mainHabitat,
                   AnimalType animalType,
@@ -31,6 +33,7 @@ public abstract class Animal {
                   boolean isInGroup,
                   String groupName) {
 
+        this.id = nextId++;
         this.biomes = biomes;
         this.currentAge = currentAge;
         this.isAlive = isAlive;
@@ -51,11 +54,15 @@ public abstract class Animal {
         return ++currentAge;
     }
 
+    public long getId() {
+        return id;
+    }
+
     public int getMaxAge() {
         return maxAge;
     }
 
-    public double getWeight() {
+    public int getWeight() {
         return weight;
     }
 
