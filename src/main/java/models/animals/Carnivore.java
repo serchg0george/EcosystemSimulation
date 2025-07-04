@@ -5,7 +5,6 @@ import enums.*;
 import java.util.Set;
 
 public class Carnivore extends Animal {
-    private final Carnivore carnivoreKind;
     private final int attackPoints;
     private int hungerRate;
 
@@ -20,12 +19,10 @@ public class Carnivore extends Animal {
                      LivingType livingType,
                      AnimalKind animalKind,
                      boolean isInGroup,
-                     Carnivore carnivoreKind,
                      int attackPoints,
                      String groupName) {
 
-        super(biomes, currentAge, isAlive, maxAge, weight, reproductiveRate, mainHabitat, animalType, livingType, animalKind, isInGroup, groupName);
-        this.carnivoreKind = carnivoreKind;
+        super(biomes, currentAge, isAlive, maxAge, weight, reproductiveRate, mainHabitat, animalType, animalKind, livingType, isInGroup, groupName);
         this.attackPoints = attackPoints;
     }
 
@@ -44,13 +41,8 @@ public class Carnivore extends Animal {
                 getLivingType(),
                 getAnimalKind(),
                 animal.isInGroup(),
-                getCarnivoreKind(),
                 getAttackPoints(),
                 getGroupName());
-    }
-
-    public Carnivore getCarnivoreKind() {
-        return carnivoreKind;
     }
 
     public int getAttackPoints() {

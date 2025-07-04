@@ -1,15 +1,7 @@
 package enums;
 
-public enum AnimalKind {
-    //CARNIVORES
-    LION,
-    TIGER,
-    HYENA,
-    CHEETAH,
-
-    //HERBIVORES
-    ZEBRA,
-    HARE,
-    GAZELLE,
-    BUFFALO
+/**
+ * This is an interface helper to avoid sticking to one concrete AnimalKind using Generic one instead
+ */
+public interface AnimalKind {
 }

@@ -26,8 +26,8 @@ public abstract class Animal {
                   int reproductiveRate,
                   Habitat mainHabitat,
                   AnimalType animalType,
-                  LivingType livingType,
                   AnimalKind animalKind,
+                  LivingType livingType,
                   boolean isInGroup,
                   String groupName) {
 
@@ -39,8 +39,8 @@ public abstract class Animal {
         this.reproductiveRate = reproductiveRate;
         this.mainHabitat = mainHabitat;
         this.animalType = animalType;
-        this.livingType = livingType;
         this.animalKind = animalKind;
+        this.livingType = livingType;
         this.isInGroup = isInGroup;
         this.groupName = groupName;
     }
@@ -91,11 +91,11 @@ public abstract class Animal {
         return isInGroup;
     }
 
-    public AnimalKind getAnimalKind() {
-        return animalKind;
-    }
-
     public String getGroupName() {
         return groupName;
+    }
+
+    public AnimalKind getAnimalKind() {
+        return animalKind;
     }
 }
