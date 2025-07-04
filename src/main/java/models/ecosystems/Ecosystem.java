@@ -3,6 +3,7 @@ package models.ecosystems;
 import static models.services.ProbabilitiesService.getChanceForAttack;
 import enums.AnimalKind;
 import enums.Biome;
+import enums.CarnivoreKind;
 import models.animals.Animal;
 import models.animals.Group;
 
@@ -26,11 +27,8 @@ public class Ecosystem {
         if (tryAttack(predator, victim)) {
             List<Group> initialGroups = groupedAnimals.get(victim.getAnimalKind());
             initialGroups.forEach(group -> {
-                Map<String, List<Animal>> groups = group.getGroupedAnimals();
-                if (groups.containsKey(victim.getGroupName())) {
-                    List<Animal> animals = groups.get(victim.getGroupName());
-                    removeAnimalById(victim.getId(), animals);
-                }
+                List<Animal> animals = group.getGroupedAnimals();
+                removeAnimalById(victim.getId(), animals);
             });
         }
     }
@@ -55,12 +53,51 @@ public class Ecosystem {
      * @param animal The group-living animal to add to a group (must not be {@code null})
      */
     private void addToGroupedAnimals(Animal animal) {
+        if (isGroupExists(animal, updatedGroups)) {
+            addNewMember(animal);
+        }
+        groupedAnimals.put(animal.getAnimalKind(), updatedGroups);
+    }
+
+    public void addNewMember(Animal animal) {
+        if (isAddLonerCarnivoreSucceed(animal)) return;
+        if (isAddLonerHerbivoreSucceed(animal)) return;
         for (Group group : updatedGroups) {
-            if (isGroupExists(animal, group)) {
-                group.addNewMember(animal);
+            if (group.getGroupName().equals(animal.getGroupName())) {
+                group.getGroupedAnimals().add(animal);
             }
         }
         groupedAnimals.put(animal.getAnimalKind(), updatedGroups);
+    }
+
+    private boolean isAddLonerHerbivoreSucceed(Animal animal) {
+        if (!isCarnivore(animal) && !animal.isInGroup()) {
+            List<Group> herbivores = groupedAnimals.get(animal.getAnimalKind());
+            herbivores.forEach(group -> {
+                if (group.getGroupName().equals("Loner herbivores")) {
+                    group.getGroupedAnimals().add(animal);
+                }
+            });
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isAddLonerCarnivoreSucceed(Animal animal) {
+        if (isCarnivore(animal) && !animal.isInGroup()) {
+            List<Group> predators = groupedAnimals.get(animal.getAnimalKind());
+            predators.forEach(group -> {
+                if (group.getGroupName().equals("Loner carnivores")) {
+                    group.getGroupedAnimals().add(animal);
+                }
+            });
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isCarnivore(Animal animal) {
+        return animal.getAnimalKind() instanceof CarnivoreKind;
     }
 
     private void removeAnimalById(long id, List<Animal> animals) {
@@ -105,8 +142,9 @@ public class Ecosystem {
         return 1 - animal.getCurrentAge() / animal.getMaxAge();
     }
 
-    private boolean isGroupExists(Animal animal, Group group) {
-        return group.getGroupedAnimals().containsKey(animal.getGroupName());
+    private boolean isGroupExists(Animal animal, List<Group> groups) {
+        return groups.stream()
+                .anyMatch(group -> group.getGroupName().equals(animal.getGroupName()));
     }
 
     public String getEcosystemName() {
