@@ -1,12 +1,10 @@
 package models.ecosystems;
 
-import static enums.LivingType.ALONE;
+import static models.services.ProbabilitiesService.getChanceForAttack;
 import enums.AnimalKind;
 import enums.Biome;
 import models.animals.Animal;
-import models.animals.Carnivore;
 import models.animals.Group;
-import models.animals.Herbivore;
 
 import java.util.List;
 import java.util.Map;
@@ -14,31 +12,27 @@ import java.util.Map;
 public class Ecosystem {
     private final String ecosystemName;
     private final Biome biome;
-    private final List<Animal> lonerAnimals; //todo I may put this List in my groupedAnimals as a group "Loners" for Predators and Grass eaters
     private final List<Group> updatedGroups;
     private final Map<AnimalKind, List<Group>> groupedAnimals;
 
-    public Ecosystem(String ecosystemName, Biome biome, List<Animal> lonerAnimals, List<Group> updatedGroups, Map<AnimalKind, List<Group>> groupedAnimals) {
+    public Ecosystem(String ecosystemName, Biome biome, List<Group> updatedGroups, Map<AnimalKind, List<Group>> groupedAnimals) {
         this.ecosystemName = ecosystemName;
         this.biome = biome;
-        this.lonerAnimals = lonerAnimals;
         this.updatedGroups = updatedGroups;
         this.groupedAnimals = groupedAnimals;
     }
 
-    public void attack(Carnivore predator, Herbivore victim) {
-        int scaledAttackPoints = getScaledPoints(predator);
-        int scaledEscapePoints = getScaledPoints(victim);
-        int initialSucceedAttackChance = (scaledAttackPoints/(scaledAttackPoints + scaledEscapePoints)) * 100;
-
-    }
-
-    public boolean isEscapedFromPredator() {
-        return false;
-    }
-
-    private static int getScaledPoints(Animal animal) {
-        return 1 - animal.getCurrentAge() / animal.getMaxAge();
+    public void attack(Animal predator, Animal victim) {
+        if (tryAttack(predator, victim)) {
+            List<Group> initialGroups = groupedAnimals.get(victim.getAnimalKind());
+            initialGroups.forEach(group -> {
+                Map<String, List<Animal>> groups = group.getGroupedAnimals();
+                if (groups.containsKey(victim.getGroupName())) {
+                    List<Animal> animals = groups.get(victim.getGroupName());
+                    removeAnimalById(victim.getId(), animals);
+                }
+            });
+        }
     }
 
     /**
@@ -49,27 +43,7 @@ public class Ecosystem {
      * @param animal The animal to be added to the ecosystem (must not be {@code null})
      */
     public void addAnimalToEcosystem(Animal animal) {
-        if (addToLonerAnimals(animal)) {
-            return;
-        }
         addToGroupedAnimals(animal);
-    }
-
-    /**
-     * Attempts to add a solitary animal to the collection of loner animals.
-     * Addition occurs only if the animal's preferred biomes include this ecosystem's biome
-     * and the animal has a solitary living type ({@code ALONE}).
-     *
-     * @param animal The animal to potentially add as a loner (must not be {@code null})
-     * @return {@code true} if the animal was successfully added as a loner,
-     *         {@code false} if the animal does not meet loner criteria
-     */
-    private boolean addToLonerAnimals(Animal animal) {
-        if (animal.getBiomes().contains(biome) && animal.getLivingType() == ALONE) {
-            lonerAnimals.add(animal);
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -82,11 +56,57 @@ public class Ecosystem {
      */
     private void addToGroupedAnimals(Animal animal) {
         for (Group group : updatedGroups) {
-            if (group.getGroupedAnimals().containsKey(animal.getGroupName())) {
+            if (isGroupExists(animal, group)) {
                 group.addNewMember(animal);
             }
         }
         groupedAnimals.put(animal.getAnimalKind(), updatedGroups);
+    }
+
+    private void removeAnimalById(long id, List<Animal> animals) {
+        animals.stream()
+                .filter(animal ->
+                        animal.getId() == id)
+                .findFirst()
+                .ifPresent(animals::remove);
+    }
+
+    private boolean tryAttack(Animal predator, Animal victim) {
+        int attackPoints = getScaledPoints(predator);
+        int escapePoints = getScaledPoints(victim);
+        if (!predator.isInGroup()) {
+            attackPoints -= attackPoints / 2;
+        }
+        if (victim.isInGroup()) {
+            escapePoints += getHerbivoreGroupBonus(escapePoints);
+        }
+        int succeedAttackChance = (attackPoints / (attackPoints + escapePoints)) * 100;
+
+        if (!isPredatorHavier(predator, victim)) {
+            succeedAttackChance = getReducedSucceedAttackChance(succeedAttackChance, predator, victim);
+        }
+        return getChanceForAttack() <= succeedAttackChance;
+    }
+
+    private int getReducedSucceedAttackChance(int succeedChance, Animal predator, Animal victim) {
+        int reducedOn = victim.getWeight() / predator.getWeight();
+        return succeedChance / reducedOn;
+    }
+
+    private int getHerbivoreGroupBonus(int escapePoints) {
+        return (int) Math.ceil(escapePoints * 0.3);
+    }
+
+    private boolean isPredatorHavier(Animal predator, Animal victim) {
+        return predator.getWeight() > victim.getWeight();
+    }
+
+    private static int getScaledPoints(Animal animal) {
+        return 1 - animal.getCurrentAge() / animal.getMaxAge();
+    }
+
+    private boolean isGroupExists(Animal animal, Group group) {
+        return group.getGroupedAnimals().containsKey(animal.getGroupName());
     }
 
     public String getEcosystemName() {
@@ -95,10 +115,6 @@ public class Ecosystem {
 
     public Biome getBiome() {
         return biome;
-    }
-
-    public List<Animal> getLonerAnimals() {
-        return lonerAnimals;
     }
 
     public Map<AnimalKind, List<Group>> getGroupedAnimals() {
