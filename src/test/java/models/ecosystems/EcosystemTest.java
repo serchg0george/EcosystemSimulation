@@ -1,9 +1,9 @@
 package models.ecosystems;
 
-import static enums.AnimalKind.ZEBRA;
 import static enums.AnimalType.HERBIVORE;
 import static enums.Biome.SAVANNA;
 import static enums.Habitat.LAND;
+import static enums.HerbivoreKind.ZEBRA;
 import static enums.LivingType.GROUP;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import enums.AnimalKind;
@@ -59,19 +59,13 @@ class EcosystemTest {
     void testAddAnimalToEcosystem_whenCalled_thenShouldAddNewAnimalToEcosystem() {
         //given
         List<Group> groups = groupedAnimals.get(zebra.getAnimalKind());
-        int initialGroupSize = 0;
-
-        for (Group group : groups) {
-            List<Animal> animals = group.getGroupedAnimals().get(zebra.getGroupName());
-            initialGroupSize = animals.size();
-        }
+        int initialGroupSize = groups.stream()
+                .findFirst()
+                .map(group -> group.getGroupedAnimals().get(zebra.getGroupName()).size())
+                .orElse(0);
 
         // when
         ecosystem.addAnimalToEcosystem(zebra);
-        for (Group group : groups) {
-            List<Animal> animals = group.getGroupedAnimals().get(zebra.getGroupName());
-            initialGroupSize = animals.size();
-        }
 
         //then
         assertNotEquals(initialGroupSize, groupedAnimals.size());
