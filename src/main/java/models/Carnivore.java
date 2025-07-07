@@ -6,7 +6,8 @@ import java.util.Set;
 
 public class Carnivore extends Animal {
     private final int attackPoints;
-    private int hungerRate;
+    private final int hungerRate;
+    private int currentHunger;
 
     public Carnivore(Set<Biome> biomes,
                      int currentAge,
@@ -20,10 +21,12 @@ public class Carnivore extends Animal {
                      AnimalKind animalKind,
                      boolean isInGroup,
                      int attackPoints,
-                     String groupName) {
+                     String groupName,
+                     int hungerRate) {
 
         super(biomes, currentAge, isAlive, maxAge, weight, reproductiveRate, mainHabitat, animalType, animalKind, livingType, isInGroup, groupName);
         this.attackPoints = attackPoints;
+        this.hungerRate = hungerRate;
     }
 
     @Override
@@ -42,7 +45,8 @@ public class Carnivore extends Animal {
                 getAnimalKind(),
                 animal.isInGroup(),
                 getAttackPoints(),
-                getGroupName());
+                getGroupName(),
+                getHungerRate());
     }
 
     public int getAttackPoints() {
@@ -53,7 +57,11 @@ public class Carnivore extends Animal {
         return hungerRate;
     }
 
-    public void setHungerRate(int hungerRate) {
-        this.hungerRate = hungerRate;
+    public int getCurrentHunger() {
+        return currentHunger;
+    }
+
+    public void setCurrentHunger(int currentHunger) {
+        this.currentHunger = currentHunger;
     }
 }
