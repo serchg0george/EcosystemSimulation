@@ -1,4 +1,4 @@
-package models.animals;
+package models;
 
 import enums.*;
 

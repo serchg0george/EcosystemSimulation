@@ -1,6 +1,4 @@
-package models.animals;
-
-import enums.CarnivoreKind;
+package models;
 
 import java.util.List;
 

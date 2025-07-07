@@ -1,11 +1,9 @@
-package models.ecosystems;
+package models;
 
-import static models.services.ProbabilitiesService.getChanceForAttack;
+import static services.ProbabilitiesService.getChanceForAttack;
 import enums.AnimalKind;
 import enums.Biome;
 import enums.CarnivoreKind;
-import models.animals.Animal;
-import models.animals.Group;
 
 import java.util.List;
 import java.util.Map;
