@@ -37,10 +37,10 @@ class HerbivoreTest {
         int initialAge = zebra.getCurrentAge();
 
         //when
-        int currentAge = zebra.growUp(zebra.getCurrentAge());
+        zebra.growUp(zebra.getCurrentAge());
 
         //then
-        assertNotEquals(initialAge, currentAge);
+        assertNotEquals(initialAge, zebra.getCurrentAge());
     }
 
     @Test

@@ -13,12 +13,12 @@ public abstract class Animal {
     private final LivingType livingType;
     private final Set<Biome> biomes;
     private final AnimalKind animalKind;
+    private final String groupName;
     private final long id;
     private static long nextId = 0;
     private int currentAge;
     private boolean isAlive;
     private boolean isInGroup;
-    private String groupName;
 
     public Animal(Set<Biome> biomes,
                   int currentAge,
@@ -50,8 +50,9 @@ public abstract class Animal {
 
     protected abstract Animal breed(Animal animal);
 
-    protected int growUp(int currentAge) {
-        return ++currentAge;
+    protected void growUp(int currentAge) {
+        int changedAge = ++currentAge;
+        setCurrentAge(changedAge);
     }
 
     public long getId() {
@@ -104,5 +105,9 @@ public abstract class Animal {
 
     public AnimalKind getAnimalKind() {
         return animalKind;
+    }
+
+    private void setCurrentAge(int currentAge) {
+        this.currentAge = currentAge;
     }
 }
