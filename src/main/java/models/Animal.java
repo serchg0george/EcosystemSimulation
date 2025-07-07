@@ -51,8 +51,7 @@ public abstract class Animal {
     protected abstract Animal breed(Animal animal);
 
     protected void growUp(int currentAge) {
-        int changedAge = ++currentAge;
-        setCurrentAge(changedAge);
+        this.currentAge = ++currentAge;
     }
 
     public long getId() {
@@ -84,7 +83,7 @@ public abstract class Animal {
     }
 
     public Set<Biome> getBiomes() {
-        return biomes;
+        return Set.copyOf(biomes);
     }
 
     public int getCurrentAge() {
@@ -105,9 +104,5 @@ public abstract class Animal {
 
     public AnimalKind getAnimalKind() {
         return animalKind;
-    }
-
-    private void setCurrentAge(int currentAge) {
-        this.currentAge = currentAge;
     }
 }

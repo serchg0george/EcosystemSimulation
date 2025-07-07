@@ -4,7 +4,7 @@ import java.util.List;
 
 public class Group {
     private final String groupName;
-    private final List<Animal> groupedAnimals;
+    private List<Animal> groupedAnimals;
 
     public Group(String groupName, List<Animal> groupedAnimals) {
         this.groupName = groupName;
@@ -12,10 +12,14 @@ public class Group {
     }
 
     public List<Animal> getGroupedAnimals() {
-        return groupedAnimals;
+        return List.copyOf(groupedAnimals);
     }
 
     public String getGroupName() {
         return groupName;
+    }
+
+    public void setGroupedAnimals(List<Animal> groupedAnimals) {
+        this.groupedAnimals = groupedAnimals;
     }
 }

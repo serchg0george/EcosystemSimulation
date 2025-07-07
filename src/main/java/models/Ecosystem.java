@@ -1,10 +1,11 @@
 package models;
 
-import static services.ProbabilitiesService.getChanceForAttack;
 import enums.AnimalKind;
 import enums.Biome;
 import enums.CarnivoreKind;
+import services.ProbabilitiesService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -13,12 +14,14 @@ public class Ecosystem {
     private final Biome biome;
     private final List<Group> updatedGroups;
     private final Map<AnimalKind, List<Group>> groupedAnimals;
+    private final ProbabilitiesService probabilitiesService;
 
-    public Ecosystem(String ecosystemName, Biome biome, List<Group> updatedGroups, Map<AnimalKind, List<Group>> groupedAnimals) {
+    public Ecosystem(String ecosystemName, Biome biome, List<Group> updatedGroups, Map<AnimalKind, List<Group>> groupedAnimals, ProbabilitiesService probabilitiesService) {
         this.ecosystemName = ecosystemName;
         this.biome = biome;
         this.updatedGroups = updatedGroups;
         this.groupedAnimals = groupedAnimals;
+        this.probabilitiesService = probabilitiesService;
     }
 
     public void attack(Carnivore predator, Herbivore victim) {
@@ -62,7 +65,9 @@ public class Ecosystem {
         if (isAddLonerHerbivoreSucceed(animal)) return;
         for (Group group : updatedGroups) {
             if (group.getGroupName().equals(animal.getGroupName())) {
-                group.getGroupedAnimals().add(animal);
+                List<Animal> animals = new ArrayList<>(group.getGroupedAnimals());
+                animals.add(animal);
+                group.setGroupedAnimals(animals);
             }
         }
         groupedAnimals.put(animal.getAnimalKind(), updatedGroups);
@@ -120,7 +125,7 @@ public class Ecosystem {
         if (!isPredatorHavier(predator, victim)) {
             succeedAttackChance = getReducedSucceedAttackChance(succeedAttackChance, predator, victim);
         }
-        return getChanceForAttack() <= succeedAttackChance;
+        return probabilitiesService.getChanceForAttack() <= succeedAttackChance;
     }
 
     private int getReducedSucceedAttackChance(int succeedChance, Animal predator, Animal victim) {
@@ -154,6 +159,6 @@ public class Ecosystem {
     }
 
     public Map<AnimalKind, List<Group>> getGroupedAnimals() {
-        return groupedAnimals;
+        return Map.copyOf(groupedAnimals);
     }
 }
