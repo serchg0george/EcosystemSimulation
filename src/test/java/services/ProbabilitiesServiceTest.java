@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 class ProbabilitiesServiceTest {
     private final ProbabilitiesService service = new ProbabilitiesService();
-    
+
     @Test
     void testGetChanceForAttack_whenCalled_thenShouldBeGreaterThanZero() {
         //given, when
