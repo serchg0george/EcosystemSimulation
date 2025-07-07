@@ -8,4 +8,8 @@ public class ProbabilitiesService {
     public int getChanceForAttack() {
         return random.nextInt(0, 101);
     }
+
+    public int getTargetId(int origin, int bound) {
+        return random.nextInt(bound, origin);
+    }
 }
