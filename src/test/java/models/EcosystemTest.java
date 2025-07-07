@@ -124,7 +124,7 @@ class EcosystemTest {
         when(probabilitiesService.getChanceForAttack()).thenReturn(0);
 
         //when
-        ecosystem.attack(cheetah, zebra);
+        ecosystem.attack(cheetah.getId(), zebra.getId());
 
         //then
         int currentZebrasSize = groupedAnimals.get(zebra.getAnimalKind())
