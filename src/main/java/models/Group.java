@@ -12,7 +12,7 @@ public class Group {
     }
 
     public List<Animal> getGroupedAnimals() {
-        return List.copyOf(groupedAnimals);
+        return groupedAnimals;
     }
 
     public String getGroupName() {
