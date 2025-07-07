@@ -24,12 +24,12 @@ public class Ecosystem {
         this.probabilitiesService = probabilitiesService;
     }
 
-    public void attack(Carnivore predator, Herbivore victim) {
-        if (tryAttack(predator, victim)) {
+    public void attack(Animal predator, Animal victim) {
+        if (isAttackSucceed(predator, victim)) {
             List<Group> initialGroups = groupedAnimals.get(victim.getAnimalKind());
             initialGroups.forEach(group -> {
                 List<Animal> animals = group.getGroupedAnimals();
-                removeAnimalById(victim.getId(), animals);
+                removeAnimalById(victim.getId(), animals); //I use static id increment so there's no chance to have same ids
             });
         }
     }
@@ -65,9 +65,7 @@ public class Ecosystem {
         if (isAddLonerHerbivoreSucceed(animal)) return;
         for (Group group : updatedGroups) {
             if (group.getGroupName().equals(animal.getGroupName())) {
-                List<Animal> animals = new ArrayList<>(group.getGroupedAnimals());
-                animals.add(animal);
-                group.setGroupedAnimals(animals);
+                group.getGroupedAnimals().add(animal);
             }
         }
         groupedAnimals.put(animal.getAnimalKind(), updatedGroups);
@@ -90,7 +88,7 @@ public class Ecosystem {
         if (isCarnivore(animal) && !animal.isInGroup()) {
             List<Group> predators = groupedAnimals.get(animal.getAnimalKind());
             predators.forEach(group -> {
-                if (group.getGroupName().equals("Loner carnivores")) {
+                if (group.getGroupName().equals("Loners")) {
                     group.getGroupedAnimals().add(animal);
                 }
             });
@@ -111,7 +109,7 @@ public class Ecosystem {
                 .ifPresent(animals::remove);
     }
 
-    private boolean tryAttack(Carnivore predator, Herbivore victim) {
+    private boolean isAttackSucceed(Animal predator, Animal victim) {
         int attackPoints = getScaledPoints(predator);
         int escapePoints = getScaledPoints(victim);
         if (!predator.isInGroup()) {
