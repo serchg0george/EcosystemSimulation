@@ -2,12 +2,12 @@ package models;
 
 import enums.AnimalKind;
 import enums.Biome;
-import enums.CarnivoreKind;
 import services.ProbabilitiesService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Ecosystem {
     private final String ecosystemName;
@@ -15,6 +15,9 @@ public class Ecosystem {
     private final List<Group> updatedGroups;
     private final Map<AnimalKind, List<Group>> groupedAnimals;
     private final ProbabilitiesService probabilitiesService;
+
+    //TODO ADD JAVADOCS FOR METHODS
+    // implement method for decreasing predator hungriness
 
     public Ecosystem(String ecosystemName, Biome biome, List<Group> updatedGroups, Map<AnimalKind, List<Group>> groupedAnimals, ProbabilitiesService probabilitiesService) {
         this.ecosystemName = ecosystemName;
@@ -24,7 +27,9 @@ public class Ecosystem {
         this.probabilitiesService = probabilitiesService;
     }
 
-    public void attack(Animal predator, Animal victim) {
+    public void attack(long predatorId, long victimId) {
+        Animal predator = findAnimalById(predatorId, groupedAnimals);
+        Animal victim = findAnimalById(victimId, groupedAnimals);
         if (isAttackSucceed(predator, victim)) {
             List<Group> initialGroups = groupedAnimals.get(victim.getAnimalKind());
             initialGroups.forEach(group -> {
@@ -98,20 +103,13 @@ public class Ecosystem {
     }
 
     private boolean isCarnivore(Animal animal) {
-        return animal.getAnimalKind() instanceof CarnivoreKind;
-    }
-
-    private void removeAnimalById(long id, List<Animal> animals) {
-        animals.stream()
-                .filter(animal ->
-                        animal.getId() == id)
-                .findFirst()
-                .ifPresent(animals::remove);
+        return animal.getAnimalType().toString().equalsIgnoreCase("carnivore");
     }
 
     private boolean isAttackSucceed(Animal predator, Animal victim) {
         int attackPoints = getScaledPoints(predator);
         int escapePoints = getScaledPoints(victim);
+
         if (!predator.isInGroup()) {
             attackPoints -= attackPoints / 2;
         }
@@ -139,8 +137,30 @@ public class Ecosystem {
         return predator.getWeight() > victim.getWeight();
     }
 
-    private static int getScaledPoints(Animal animal) {
+    private int getScaledPoints(Animal animal) {
         return 1 - animal.getCurrentAge() / animal.getMaxAge();
+    }
+
+    private void removeAnimalById(long id, List<Animal> animals) {
+        animals.stream()
+                .filter(animal ->
+                        animal.getId() == id)
+                .findFirst()
+                .ifPresent(animals::remove);
+    }
+
+    private Animal findAnimalById(long targetId, Map<AnimalKind, List<Group>> groupedAnimals) {
+        final List<Animal> foundAnimal = new ArrayList<>();
+        groupedAnimals.forEach((animalKind, groups) -> {
+            groups.forEach(group ->
+                    group.getGroupedAnimals().forEach(
+                            animal -> {
+                                if (animal.getId() == targetId) {
+                                    foundAnimal.add(animal);
+                                }
+                            }));
+        });
+        return foundAnimal.getFirst();
     }
 
     private boolean isGroupExists(Animal animal, List<Group> groups) {
