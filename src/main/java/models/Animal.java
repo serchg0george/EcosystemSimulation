@@ -105,4 +105,8 @@ public abstract class Animal {
     public AnimalKind getAnimalKind() {
         return animalKind;
     }
+
+    public void setAlive(boolean alive) {
+        isAlive = alive;
+    }
 }
