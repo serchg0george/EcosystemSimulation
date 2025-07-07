@@ -49,6 +49,18 @@ public class Carnivore extends Animal {
                 getHungerRate());
     }
 
+    protected boolean isDiedFromHunger() {
+        if (currentHunger >= 100) {
+            setAlive(false);
+            return true;
+        }
+        return false;
+    }
+
+    protected void feed() {
+        currentHunger += hungerRate;
+    }
+
     public int getAttackPoints() {
         return attackPoints;
     }
@@ -59,9 +71,5 @@ public class Carnivore extends Animal {
 
     public int getCurrentHunger() {
         return currentHunger;
-    }
-
-    public void setCurrentHunger(int currentHunger) {
-        this.currentHunger = currentHunger;
     }
 }
