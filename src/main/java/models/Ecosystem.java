@@ -21,7 +21,7 @@ public class Ecosystem {
         this.groupedAnimals = groupedAnimals;
     }
 
-    public void attack(Animal predator, Animal victim) {
+    public void attack(Carnivore predator, Herbivore victim) {
         if (tryAttack(predator, victim)) {
             List<Group> initialGroups = groupedAnimals.get(victim.getAnimalKind());
             initialGroups.forEach(group -> {
@@ -106,7 +106,7 @@ public class Ecosystem {
                 .ifPresent(animals::remove);
     }
 
-    private boolean tryAttack(Animal predator, Animal victim) {
+    private boolean tryAttack(Carnivore predator, Herbivore victim) {
         int attackPoints = getScaledPoints(predator);
         int escapePoints = getScaledPoints(victim);
         if (!predator.isInGroup()) {
