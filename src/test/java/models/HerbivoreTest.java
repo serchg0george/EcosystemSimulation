@@ -1,9 +1,9 @@
-package models.animals;
+package models;
 
-import static enums.AnimalKind.ZEBRA;
 import static enums.AnimalType.HERBIVORE;
 import static enums.Biome.SAVANNA;
 import static enums.Habitat.LAND;
+import static enums.HerbivoreKind.ZEBRA;
 import static enums.LivingType.GROUP;
 import static org.junit.jupiter.api.Assertions.*;
 import enums.Biome;
@@ -33,8 +33,14 @@ class HerbivoreTest {
 
     @Test
     void testGrowUp_whenCalled_thenShouldReturnIncreasedAge() {
-        //given, when, then
-        assertNotEquals(zebra.getCurrentAge(), zebra.growUp(zebra.getCurrentAge()));
+        //given
+        int initialAge = zebra.getCurrentAge();
+
+        //when
+        int currentAge = zebra.growUp(zebra.getCurrentAge());
+
+        //then
+        assertNotEquals(initialAge, currentAge);
     }
 
     @Test
