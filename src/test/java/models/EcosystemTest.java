@@ -9,10 +9,12 @@ import static enums.HerbivoreKind.ZEBRA;
 import static enums.LivingType.ALONE;
 import static enums.LivingType.GROUP;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import enums.AnimalKind;
 import enums.Biome;
+import exceptions.IllegalAttackTargetException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,18 +39,17 @@ class EcosystemTest {
     boolean cheetahIsAlive = true;
     boolean isZebraInGroup = true;
     boolean isCheetahInGroup = false;
-    private int zebraCurrentAge = 10;
-    private int cheetahCurrentAge = 10;
+    private final int zebraCurrentAge = 10;
+    private final int cheetahCurrentAge = 10;
     private List<Group> updatedGroups;
     private Map<AnimalKind, List<Group>> groupedAnimals;
-    private List<Animal> groupMembers;
     private Ecosystem ecosystem;
     private final Animal zebra = new Herbivore(biomes, zebraCurrentAge, zebraIsAlive, zebraMaxAge, zebraWeight, zebraReproductiveRate, LAND, HERBIVORE, ZEBRA, GROUP, isZebraInGroup, zebraEscapePoints, ZEBRA_GROUP_NAME);
     private final Animal cheetah = new Carnivore(biomes, cheetahCurrentAge, cheetahIsAlive, cheetahMaxAge, cheetahWeight, cheetahReproductiveRate, LAND, CARNIVORE, ALONE, CHEETAH, isCheetahInGroup, cheetahAttackPoints, LONERS_GROUP, 15);
 
     @BeforeEach
     void setUp() {
-        groupMembers = new ArrayList<>();
+        List<Animal> groupMembers = new ArrayList<>();
         Group zebraGroup = new Group(ZEBRA_GROUP_NAME, groupMembers);
         updatedGroups = new ArrayList<>();
         updatedGroups.add(zebraGroup);
@@ -62,6 +63,46 @@ class EcosystemTest {
     @AfterEach
     void tearDown() {
         updatedGroups.clear();
+    }
+
+    //TODO add to all tests message in assertions
+
+    @Test
+    void testAttackIllegalTarget_whenTargetCarnivore_thenShouldThrow() {
+        //given
+        ecosystem.addAnimalToEcosystem(cheetah);
+        ecosystem.addAnimalToEcosystem(zebra);
+
+        //when //then
+        assertThrows(IllegalAttackTargetException.class, () -> ecosystem.attack(cheetah.getId(), cheetah.getId()));
+    }
+
+    @Test
+    void testAttack_whenCalledAndSucceed_thenShouldRemoveHerbivoreFromList() {
+        //given
+        ecosystem.addAnimalToEcosystem(cheetah);
+        ecosystem.addAnimalToEcosystem(zebra);
+
+        Optional<Group> initialZebrasGroup = groupedAnimals.get(zebra.getAnimalKind())
+                .stream()
+                .filter(group -> group.getGroupName().equals(ZEBRA_GROUP_NAME))
+                .findFirst();
+
+        if (initialZebrasGroup.isEmpty()) return;
+        int initialZebrasSize = initialZebrasGroup.stream().findAny().get().getGroupedAnimals().size();
+        when(probabilitiesService.getChanceForAttack()).thenReturn(0);
+
+        //when
+        ecosystem.attack(cheetah.getId(), zebra.getId());
+
+        //then
+        Optional<Group> currentGroup = groupedAnimals.get(zebra.getAnimalKind())
+                .stream()
+                .filter(group -> group.getGroupName().equals(ZEBRA_GROUP_NAME))
+                .findFirst();
+        if (currentGroup.isEmpty()) return;
+        int currentZebrasSize = currentGroup.stream().findAny().get().getGroupedAnimals().size();
+        assertNotEquals(initialZebrasSize, currentZebrasSize);
     }
 
     @Test
@@ -104,37 +145,5 @@ class EcosystemTest {
                 .map(group -> group.getGroupedAnimals().size())
                 .orElse(0);
         assertNotEquals(initialGroupSize, finalGroupSize);
-    }
-
-    @Test
-    void testAttack_whenCalledAndSucceed_thenShouldRemoveHerbivoreFromList() {
-        //given
-        ecosystem.addAnimalToEcosystem(cheetah);
-        ecosystem.addAnimalToEcosystem(zebra);
-
-        Optional<Group> initialZebrasGroup = groupedAnimals.get(zebra.getAnimalKind())
-                .stream()
-                .filter(group -> group.getGroupName().equals(ZEBRA_GROUP_NAME))
-                .findFirst();
-
-        if (initialZebrasGroup.isEmpty()) {
-            return;
-        }
-        int initialZebrasSize = initialZebrasGroup.stream().findAny().get().getGroupedAnimals().size();
-        when(probabilitiesService.getChanceForAttack()).thenReturn(0);
-
-        //when
-        ecosystem.attack(cheetah.getId(), zebra.getId());
-
-        //then
-        int currentZebrasSize = groupedAnimals.get(zebra.getAnimalKind())
-                .stream()
-                .filter(group -> group.getGroupName().equals(ZEBRA_GROUP_NAME))
-                .findFirst()
-                .get()
-                .getGroupedAnimals()
-                .size();
-
-        assertNotEquals(initialZebrasSize, currentZebrasSize);
     }
 }
