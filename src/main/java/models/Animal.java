@@ -12,7 +12,7 @@ public abstract class Animal {
     private final AnimalType animalType;
     private final LivingType livingType;
     private final Set<Biome> biomes;
-    private final AnimalKind animalKind;
+    private final String animalKind;
     private final String groupName;
     private final long id;
     private static long nextId = 0;
@@ -28,7 +28,7 @@ public abstract class Animal {
                   int reproductiveRate,
                   Habitat mainHabitat,
                   AnimalType animalType,
-                  AnimalKind animalKind,
+                  String animalKind,
                   LivingType livingType,
                   boolean isInGroup,
                   String groupName) {
@@ -52,6 +52,10 @@ public abstract class Animal {
 
     protected void growUp(int currentAge) {
         this.currentAge = ++currentAge;
+    }
+
+    protected static void resetIdCounter() {
+        nextId = 0;
     }
 
     public long getId() {
@@ -102,7 +106,7 @@ public abstract class Animal {
         return groupName;
     }
 
-    public AnimalKind getAnimalKind() {
+    public String getAnimalKind() {
         return animalKind;
     }
 
