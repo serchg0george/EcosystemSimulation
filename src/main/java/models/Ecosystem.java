@@ -35,16 +35,16 @@ public class Ecosystem {
     public void attack(long predatorId, long victimId) {
         Animal predator = findAnimalById(predatorId, groupedAnimals);
         Animal victim = findAnimalById(victimId, groupedAnimals);
-        if (!isCarnivore(victim)) {
-            if (isAttackSucceed(predator, victim)) {
-                List<Group> initialGroups = groupedAnimals.get(victim.getAnimalKind());
-                initialGroups.forEach(group -> {
-                    List<Animal> animals = group.getGroupedAnimals();
-                    removeAnimalById(victim.getId(), animals); //I use static id increment so there's no chance to have same ids
-                });
-            }
+        if (isCarnivore(victim)) {
+            throw new IllegalAttackTargetException("Attack target must be a herbivore!");
         }
-        throw new IllegalAttackTargetException("Attack target must be a herbivore!");
+        if (isAttackSucceed(predator, victim)) {
+            List<Group> initialGroups = groupedAnimals.get(victim.getAnimalKind());
+            initialGroups.forEach(group -> {
+                List<Animal> animals = group.getGroupedAnimals();
+                removeAnimalById(victim.getId(), animals); //I use static id increment so there's no chance to have same ids
+            });
+        }
     }
 
     /**
