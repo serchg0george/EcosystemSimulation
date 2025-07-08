@@ -1,28 +1,30 @@
 package models;
 
-import enums.AnimalKind;
+import enums.AnimalType;
 import enums.Biome;
-import exceptions.IllegalAttackTargetException;
+import exceptions.AnimalNotFoundException;
+import exceptions.IllegalAttackArgumentException;
 import services.ProbabilitiesService;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Ecosystem {
     private final String ecosystemName;
     private final Biome biome;
-    private final List<Group> updatedGroups;
-    private final Map<AnimalKind, List<Group>> groupedAnimals;
+    private final List<Animal> updatedGroups;
+    private final Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals;
     private final ProbabilitiesService probabilitiesService;
 
-    //TODO implement method for decreasing predator hungriness
-
-    public Ecosystem(String ecosystemName, Biome biome, List<Group> updatedGroups, Map<AnimalKind, List<Group>> groupedAnimals, ProbabilitiesService probabilitiesService) {
+    public Ecosystem(String ecosystemName, Biome biome, List<Animal> updatedGroups, Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals, ProbabilitiesService probabilitiesService) {
         this.ecosystemName = ecosystemName;
         this.biome = biome;
         this.updatedGroups = updatedGroups;
-        this.groupedAnimals = groupedAnimals;
+        this.ecosystemGroupedAnimals = ecosystemGroupedAnimals;
         this.probabilitiesService = probabilitiesService;
     }
 
@@ -33,17 +35,14 @@ public class Ecosystem {
      * @param victimId   herbivore id which under attack
      */
     public void attack(long predatorId, long victimId) {
-        Animal predator = findAnimalById(predatorId, groupedAnimals);
-        Animal victim = findAnimalById(victimId, groupedAnimals);
-        if (isCarnivore(victim)) {
-            throw new IllegalAttackTargetException("Attack target must be a herbivore!");
-        }
+        Animal predator = findAnimalById(predatorId, ecosystemGroupedAnimals);
+        Animal victim = findAnimalById(victimId, ecosystemGroupedAnimals);
+        isAttackValid(predator, victim);
         if (isAttackSucceed(predator, victim)) {
-            List<Group> initialGroups = groupedAnimals.get(victim.getAnimalKind());
-            initialGroups.forEach(group -> {
-                List<Animal> animals = group.getGroupedAnimals();
-                removeAnimalById(victim.getId(), animals); //I use static id increment so there's no chance to have same ids
-            });
+            decreaseHunger(predator, victim);
+            ecosystemGroupedAnimals.get(victim.getAnimalType())
+                    .get(victim.getGroupName())
+                    .removeIf(a -> a.getId() == victim.getId());
         }
     }
 
@@ -55,22 +54,108 @@ public class Ecosystem {
      * @param animal The animal to be added to the ecosystem (must not be {@code null})
      */
     public void addAnimalToEcosystem(Animal animal) {
-        addToGroupedAnimals(animal);
+        if (isGroupExists(animal, animal.getGroupName(), ecosystemGroupedAnimals)) {
+            addNewMember(animal);
+            return;
+        }
+        Map<String, List<Animal>> groups = new HashMap<>();
+        groups.put(animal.getGroupName(), updatedGroups);
+        ecosystemGroupedAnimals.put(animal.getAnimalType(), groups);
     }
 
     /**
-     * Adds a group-living animal to an existing animal group. Iterates through known
-     * animal groups to find a matching group (identified by the animal's group name)
-     * and adds the animal as a new member. Finally updates the grouped animals mapping
-     * with the latest group information.
+     * Decreases the hunger level of the predator after a successful attack.
+     * The hunger decrease is distributed among group members if the predator is in a group.
      *
-     * @param animal animal to add to a group (must not be {@code null})
+     * @param predator the attacking carnivore
+     * @param victim the herbivore that was attacked
      */
-    private void addToGroupedAnimals(Animal animal) {
-        if (isGroupExists(animal, updatedGroups)) {
-            addNewMember(animal);
+    private void decreaseHunger(Animal predator, Animal victim) {
+        if (!predator.isInGroup()) {
+            decreaseLonerHunger(predator, victim);
         }
-        groupedAnimals.put(animal.getAnimalKind(), updatedGroups);
+        decreaseGroupHunger(predator, victim);
+    }
+
+    /**
+     * Decreases hunger for all members of the predator's group after a successful attack.
+     * The main predator gets a larger share of the hunger decrease.
+     *
+     * @param predator the attacking carnivore
+     * @param victim the herbivore that was attacked
+     */
+    private void decreaseGroupHunger(Animal predator, Animal victim) {
+        List<Animal> predators = ecosystemGroupedAnimals.get(predator.getAnimalType()).get(predator.getGroupName());
+        Carnivore attacker = (Carnivore) predator;
+        double hungerForDecrease = calculateHungerDecreaseAmount(predator, victim) / ((double) predators.size() + 1);
+        predators.forEach(animal -> {
+            if (animal.getId() == predator.getId()) {
+                if (isUpdatedHungerGreaterThanInitial(hungerForDecrease, attacker.getCurrentHunger(), attacker)) return;
+                BigDecimal roundedHunger = BigDecimal.valueOf(attacker.getCurrentHunger() - (hungerForDecrease * 2)).setScale(1, RoundingMode.HALF_UP);
+                attacker.setCurrentHunger(roundedHunger.doubleValue());
+            } else if (animal instanceof Carnivore carnivore) {
+                if (!isUpdatedHungerGreaterThanInitial(hungerForDecrease, carnivore.getCurrentHunger(), carnivore)) {
+                    BigDecimal roundedHunger = BigDecimal.valueOf(carnivore.getCurrentHunger() - hungerForDecrease).setScale(1, RoundingMode.HALF_UP);
+                    carnivore.setCurrentHunger(roundedHunger.doubleValue());
+                }
+            }
+        });
+    }
+
+    /**
+     * Decreases hunger for a solitary predator after a successful attack.
+     *
+     * @param predator the attacking carnivore
+     * @param victim the herbivore that was attacked
+     */
+    private void decreaseLonerHunger(Animal predator, Animal victim) {
+        Carnivore carnivore = (Carnivore) predator;
+        if (!carnivore.isDiedFromHunger()) {
+            double initHunger = carnivore.getCurrentHunger();
+            double updatedHunger = calculateHungerDecreaseAmount(predator, victim);
+            if (isUpdatedHungerGreaterThanInitial(updatedHunger, initHunger, carnivore)) return;
+            carnivore.setCurrentHunger(updatedHunger);
+        }
+    }
+
+    /**
+     * Checks if the updated hunger value would be greater than the initial hunger.
+     * If true, sets the current hunger to 0.
+     *
+     * @param updatedHunger the proposed new hunger value
+     * @param initHunger the current hunger value
+     * @param carnivore the carnivore whose hunger is being adjusted
+     * @return true if updated hunger would be greater than initial, false otherwise
+     */
+    private boolean isUpdatedHungerGreaterThanInitial(double updatedHunger, double initHunger, Carnivore carnivore) {
+        if (updatedHunger > initHunger) {
+            carnivore.setCurrentHunger(0);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Calculates the amount of hunger decrease based on the weight ratio between victim and predator.
+     *
+     * @param predator the attacking carnivore
+     * @param victim the herbivore that was attacked
+     * @return the calculated hunger decrease amount
+     */
+    private double calculateHungerDecreaseAmount(Animal predator, Animal victim) {
+        return (((double) victim.getWeight() / (double) predator.getWeight()) * 100);
+    }
+
+    /**
+     * Validates if an attack is possible between the given animals.
+     *
+     * @param predator the attacking animal
+     * @param victim the animal being attacked
+     * @throws IllegalAttackArgumentException if attack conditions are invalid
+     */
+    private void isAttackValid(Animal predator, Animal victim) {
+        if (!isCarnivore(predator)) throw new IllegalAttackArgumentException("Attacker must be a carnivore!");
+        if (isCarnivore(victim)) throw new IllegalAttackArgumentException("Target must be a herbivore!");
     }
 
     /**
@@ -79,59 +164,14 @@ public class Ecosystem {
      *
      * @param animal animal which pretend to be a part of group
      */
-    public void addNewMember(Animal animal) {
-        if (isAddLonerCarnivoreSucceed(animal)) return;
-        if (isAddLonerHerbivoreSucceed(animal)) return;
-        for (Group group : updatedGroups) {
-            if (group.getGroupName().equals(animal.getGroupName())) {
-                group.getGroupedAnimals().add(animal);
-            }
-        }
-        groupedAnimals.put(animal.getAnimalKind(), updatedGroups);
-    }
+    private void addNewMember(Animal animal) {
+        AnimalType kind = animal.getAnimalType();
+        String groupName = animal.getGroupName();
 
-    /**
-     * Tries to add loner herbivore to loners group within herbivores
-     *
-     * @param animal receive animal which may be a loner
-     * @return if animal actually have a living type ALONE returns true,
-     * otherwise — false
-     */
-    private boolean isAddLonerHerbivoreSucceed(Animal animal) {
-        if (!isCarnivore(animal) && !animal.isInGroup()) {
-            List<Group> herbivores = groupedAnimals.get(animal.getAnimalKind());
-            herbivores.forEach(group -> {
-                if (group.getGroupName().equals("Loners")) {
-                    group.getGroupedAnimals().add(animal);
-                }
-            });
-            return true;
-        }
-        return false;
-    }
+        Map<String, List<Animal>> groups = ecosystemGroupedAnimals.computeIfAbsent(kind, k -> new java.util.HashMap<>());
 
-    /**
-     * Tries to add loner carnivore to loners group within carnivores
-     *
-     * @param animal receive animal which may be a loner
-     * @return if animal actually have a living type ALONE returns true,
-     * otherwise — false
-     */
-    private boolean isAddLonerCarnivoreSucceed(Animal animal) {
-        if (isCarnivore(animal) && !animal.isInGroup()) {
-            List<Group> predators = groupedAnimals.get(animal.getAnimalKind());
-            predators.forEach(group -> {
-                if (group.getGroupName().equals("Loners")) {
-                    group.getGroupedAnimals().add(animal);
-                }
-            });
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isCarnivore(Animal animal) {
-        return animal.getAnimalType().toString().equalsIgnoreCase("carnivore");
+        List<Animal> groupMembers = groups.computeIfAbsent(groupName, g -> new ArrayList<>());
+        groupMembers.add(animal);
     }
 
     /**
@@ -170,8 +210,8 @@ public class Ecosystem {
      * @return returns reduced chance of successful attack
      */
     private int calculateReducedSucceedAttackChance(int succeedChance, Animal predator, Animal victim) {
-        int reducedOn = victim.getWeight() / predator.getWeight();
-        return succeedChance / reducedOn;
+        double reducedOn = (double) victim.getWeight() / (double) predator.getWeight();
+        return (int) (succeedChance / reducedOn) * 100;
     }
 
     /**
@@ -182,10 +222,6 @@ public class Ecosystem {
      */
     private int calculateHerbivoreGroupBonus(int escapePoints) {
         return (int) Math.ceil(escapePoints * 0.3);
-    }
-
-    private boolean isPredatorHavier(Animal predator, Animal victim) {
-        return predator.getWeight() > victim.getWeight();
     }
 
     /**
@@ -199,42 +235,54 @@ public class Ecosystem {
         return 100 - (animal.getCurrentAge() * 100 / animal.getMaxAge());
     }
 
-    private void removeAnimalById(long id, List<Animal> animals) {
-        animals.stream()
-                .filter(animal ->
-                        animal.getId() == id)
+    /**
+     * Finds an animal by its ID in the grouped animals structure.
+     *
+     * @param targetId the ID of the animal to find
+     * @param groupedAnimals the map of grouped animals to search in
+     * @return the found animal
+     * @throws AnimalNotFoundException if the animal is not found
+     */
+    private Animal findAnimalById(long targetId, Map<AnimalType, Map<String, List<Animal>>> groupedAnimals) {
+        return groupedAnimals.values().stream()
+                .flatMap(map -> map.values().stream())
+                .flatMap(List::stream)
+                .filter(animal -> animal.getId() == targetId)
                 .findFirst()
-                .ifPresent(animals::remove);
+                .orElseThrow(() -> new AnimalNotFoundException("Animal with id " + targetId + " not found"));
     }
 
-    private Animal findAnimalById(long targetId, Map<AnimalKind, List<Group>> groupedAnimals) {
-        final List<Animal> foundAnimal = new ArrayList<>();
-        groupedAnimals.forEach((animalKind, groups) -> {
-            groups.forEach(group ->
-                    group.getGroupedAnimals().forEach(
-                            animal -> {
-                                if (animal.getId() == targetId) {
-                                    foundAnimal.add(animal);
-                                }
-                            }));
-        });
-        return foundAnimal.getFirst();
+    /**
+     * Checks if an animal is a carnivore.
+     *
+     * @param animal the animal to check
+     * @return true if the animal is a carnivore, false otherwise
+     */
+    private boolean isCarnivore(Animal animal) {
+        return animal.getAnimalType().toString().equalsIgnoreCase("carnivore");
     }
 
-    private boolean isGroupExists(Animal animal, List<Group> groups) {
-        return groups.stream()
-                .anyMatch(group -> group.getGroupName().equals(animal.getGroupName()));
+    /**
+     * Checks if the predator is heavier than the victim.
+     *
+     * @param predator the attacking animal
+     * @param victim the animal being attacked
+     * @return true if predator is heavier, false otherwise
+     */
+    private boolean isPredatorHavier(Animal predator, Animal victim) {
+        return predator.getWeight() > victim.getWeight();
     }
 
-    public String getEcosystemName() {
-        return ecosystemName;
-    }
-
-    public Biome getBiome() {
-        return biome;
-    }
-
-    public Map<AnimalKind, List<Group>> getGroupedAnimals() {
-        return Map.copyOf(groupedAnimals);
+    /**
+     * Checks if a group exists for the given animal.
+     *
+     * @param animal the animal to check group for
+     * @param groupName the name of the group
+     * @param groups the map of all groups
+     * @return true if the group exists, false otherwise
+     */
+    private boolean isGroupExists(Animal animal, String groupName, Map<AnimalType, Map<String, List<Animal>>> groups) {
+        Map<String, List<Animal>> animals = groups.get(animal.getAnimalType());
+        return animals.containsKey(groupName);
     }
 }
