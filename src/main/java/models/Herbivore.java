@@ -15,7 +15,7 @@ public class Herbivore extends Animal {
                      int reproductiveRate,
                      Habitat mainHabitat,
                      AnimalType animalType,
-                     AnimalKind animalKind,
+                     String animalKind,
                      LivingType livingType,
                      boolean isInGroup,
                      int escapePoints,

@@ -1,13 +1,16 @@
 package models;
 
-import enums.*;
+import enums.AnimalType;
+import enums.Biome;
+import enums.Habitat;
+import enums.LivingType;
 
 import java.util.Set;
 
 public class Carnivore extends Animal {
     private final int attackPoints;
     private final int hungerRate;
-    private int currentHunger;
+    private double currentHunger;
 
     public Carnivore(Set<Biome> biomes,
                      int currentAge,
@@ -18,7 +21,7 @@ public class Carnivore extends Animal {
                      Habitat mainHabitat,
                      AnimalType animalType,
                      LivingType livingType,
-                     AnimalKind animalKind,
+                     String animalKind,
                      boolean isInGroup,
                      int attackPoints,
                      String groupName,
@@ -54,10 +57,11 @@ public class Carnivore extends Animal {
             setAlive(false);
             return true;
         }
+        increaseHunger();
         return false;
     }
 
-    protected void feed() {
+    protected void increaseHunger() {
         currentHunger += hungerRate;
     }
 
@@ -69,7 +73,11 @@ public class Carnivore extends Animal {
         return hungerRate;
     }
 
-    public int getCurrentHunger() {
+    public double getCurrentHunger() {
         return currentHunger;
+    }
+
+    public void setCurrentHunger(double currentHunger) {
+        this.currentHunger = currentHunger;
     }
 }
