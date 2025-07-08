@@ -3,7 +3,6 @@ package models;
 import static enums.AnimalType.HERBIVORE;
 import static enums.Biome.SAVANNA;
 import static enums.Habitat.LAND;
-import static enums.HerbivoreKind.ZEBRA;
 import static enums.LivingType.GROUP;
 import static org.junit.jupiter.api.Assertions.*;
 import enums.Biome;
@@ -28,7 +27,7 @@ class HerbivoreTest {
         Set<Biome> biomes = new HashSet<>();
         biomes.add(SAVANNA);
         String ZEBRA_GROUP_NAME = "zebra test";
-        zebra = new Herbivore(biomes, currentAge, isAlive, zebraMaxAge, zebraWeight, zebraReproductiveRate, LAND, HERBIVORE, ZEBRA, GROUP, isZebraInGroup, zebraEscapePoints, ZEBRA_GROUP_NAME);
+        zebra = new Herbivore(biomes, currentAge, isAlive, zebraMaxAge, zebraWeight, zebraReproductiveRate, LAND, HERBIVORE, "ZEBRA", GROUP, isZebraInGroup, zebraEscapePoints, ZEBRA_GROUP_NAME);
     }
 
     @Test
