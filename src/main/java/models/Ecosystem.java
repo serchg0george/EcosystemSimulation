@@ -2,6 +2,7 @@ package models;
 
 import enums.AnimalKind;
 import enums.Biome;
+import exceptions.IllegalAttackTargetException;
 import services.ProbabilitiesService;
 
 import java.util.ArrayList;
@@ -32,16 +33,18 @@ public class Ecosystem {
      * @param victimId   herbivore id which under attack
      */
     public void attack(long predatorId, long victimId) {
-        //TODO isAttacking herbivore actually?
         Animal predator = findAnimalById(predatorId, groupedAnimals);
         Animal victim = findAnimalById(victimId, groupedAnimals);
-        if (isAttackSucceed(predator, victim)) {
-            List<Group> initialGroups = groupedAnimals.get(victim.getAnimalKind());
-            initialGroups.forEach(group -> {
-                List<Animal> animals = group.getGroupedAnimals();
-                removeAnimalById(victim.getId(), animals); //I use static id increment so there's no chance to have same ids
-            });
+        if (!isCarnivore(victim)) {
+            if (isAttackSucceed(predator, victim)) {
+                List<Group> initialGroups = groupedAnimals.get(victim.getAnimalKind());
+                initialGroups.forEach(group -> {
+                    List<Animal> animals = group.getGroupedAnimals();
+                    removeAnimalById(victim.getId(), animals); //I use static id increment so there's no chance to have same ids
+                });
+            }
         }
+        throw new IllegalAttackTargetException("Attack target must be a herbivore!");
     }
 
     /**
