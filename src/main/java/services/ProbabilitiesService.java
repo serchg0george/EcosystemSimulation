@@ -9,7 +9,7 @@ public class ProbabilitiesService {
         return random.nextInt(0, 101);
     }
 
-    public int getTargetId(int origin, int bound) {
-        return random.nextInt(bound, origin);
+    public int getTargetId(int bound) {
+        return random.nextInt(0, bound);
     }
 }
