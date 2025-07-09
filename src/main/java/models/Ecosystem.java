@@ -1,5 +1,7 @@
 package models;
 
+import static enums.AnimalType.CARNIVORE;
+import static enums.AnimalType.HERBIVORE;
 import enums.AnimalType;
 import enums.Biome;
 import exceptions.AnimalNotFoundException;
@@ -15,17 +17,21 @@ import java.util.Map;
 
 public class Ecosystem {
     private final String ecosystemName;
-    private final Biome biome;
-    private final List<Animal> updatedGroups;
+    private final List<Animal> groups;
     private final Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals;
     private final ProbabilitiesService probabilitiesService;
 
-    public Ecosystem(String ecosystemName, Biome biome, List<Animal> updatedGroups, Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals, ProbabilitiesService probabilitiesService) {
+    public Ecosystem(String ecosystemName, Biome biome, List<Animal> groups, Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals, ProbabilitiesService probabilitiesService) {
         this.ecosystemName = ecosystemName;
-        this.biome = biome;
-        this.updatedGroups = updatedGroups;
+        this.groups = groups;
         this.ecosystemGroupedAnimals = ecosystemGroupedAnimals;
         this.probabilitiesService = probabilitiesService;
+        Map<String, List<Animal>> lonerCarnivores = new HashMap<>();
+        lonerCarnivores.put("Loners", new ArrayList<>());
+        Map<String, List<Animal>> lonerHerbivores = new HashMap<>();
+        lonerHerbivores.put("Loners", new ArrayList<>());
+        ecosystemGroupedAnimals.put(CARNIVORE, lonerCarnivores);
+        ecosystemGroupedAnimals.put(HERBIVORE, lonerHerbivores);
     }
 
     /**
@@ -59,8 +65,14 @@ public class Ecosystem {
             return;
         }
         Map<String, List<Animal>> groups = new HashMap<>();
-        groups.put(animal.getGroupName(), updatedGroups);
+        groups.put(animal.getGroupName(), this.groups);
         ecosystemGroupedAnimals.put(animal.getAnimalType(), groups);
+    }
+
+    public boolean isHaveAnimals(Ecosystem ecosystem) {
+        return ecosystem.ecosystemGroupedAnimals.values().stream()
+                .flatMap(groups -> groups.values().stream())
+                .anyMatch(animals -> !animals.isEmpty());
     }
 
     /**
@@ -68,7 +80,7 @@ public class Ecosystem {
      * The hunger decrease is distributed among group members if the predator is in a group.
      *
      * @param predator the attacking carnivore
-     * @param victim the herbivore that was attacked
+     * @param victim   the herbivore that was attacked
      */
     private void decreaseHunger(Animal predator, Animal victim) {
         if (!predator.isInGroup()) {
@@ -82,7 +94,7 @@ public class Ecosystem {
      * The main predator gets a larger share of the hunger decrease.
      *
      * @param predator the attacking carnivore
-     * @param victim the herbivore that was attacked
+     * @param victim   the herbivore that was attacked
      */
     private void decreaseGroupHunger(Animal predator, Animal victim) {
         List<Animal> predators = ecosystemGroupedAnimals.get(predator.getAnimalType()).get(predator.getGroupName());
@@ -106,7 +118,7 @@ public class Ecosystem {
      * Decreases hunger for a solitary predator after a successful attack.
      *
      * @param predator the attacking carnivore
-     * @param victim the herbivore that was attacked
+     * @param victim   the herbivore that was attacked
      */
     private void decreaseLonerHunger(Animal predator, Animal victim) {
         Carnivore carnivore = (Carnivore) predator;
@@ -123,8 +135,8 @@ public class Ecosystem {
      * If true, sets the current hunger to 0.
      *
      * @param updatedHunger the proposed new hunger value
-     * @param initHunger the current hunger value
-     * @param carnivore the carnivore whose hunger is being adjusted
+     * @param initHunger    the current hunger value
+     * @param carnivore     the carnivore whose hunger is being adjusted
      * @return true if updated hunger would be greater than initial, false otherwise
      */
     private boolean isUpdatedHungerGreaterThanInitial(double updatedHunger, double initHunger, Carnivore carnivore) {
@@ -139,7 +151,7 @@ public class Ecosystem {
      * Calculates the amount of hunger decrease based on the weight ratio between victim and predator.
      *
      * @param predator the attacking carnivore
-     * @param victim the herbivore that was attacked
+     * @param victim   the herbivore that was attacked
      * @return the calculated hunger decrease amount
      */
     private double calculateHungerDecreaseAmount(Animal predator, Animal victim) {
@@ -150,7 +162,7 @@ public class Ecosystem {
      * Validates if an attack is possible between the given animals.
      *
      * @param predator the attacking animal
-     * @param victim the animal being attacked
+     * @param victim   the animal being attacked
      * @throws IllegalAttackArgumentException if attack conditions are invalid
      */
     private void isAttackValid(Animal predator, Animal victim) {
@@ -168,7 +180,7 @@ public class Ecosystem {
         AnimalType kind = animal.getAnimalType();
         String groupName = animal.getGroupName();
 
-        Map<String, List<Animal>> groups = ecosystemGroupedAnimals.computeIfAbsent(kind, k -> new java.util.HashMap<>());
+        Map<String, List<Animal>> groups = ecosystemGroupedAnimals.computeIfAbsent(kind, k -> new HashMap<>());
 
         List<Animal> groupMembers = groups.computeIfAbsent(groupName, g -> new ArrayList<>());
         groupMembers.add(animal);
@@ -238,7 +250,7 @@ public class Ecosystem {
     /**
      * Finds an animal by its ID in the grouped animals structure.
      *
-     * @param targetId the ID of the animal to find
+     * @param targetId       the ID of the animal to find
      * @param groupedAnimals the map of grouped animals to search in
      * @return the found animal
      * @throws AnimalNotFoundException if the animal is not found
@@ -266,7 +278,7 @@ public class Ecosystem {
      * Checks if the predator is heavier than the victim.
      *
      * @param predator the attacking animal
-     * @param victim the animal being attacked
+     * @param victim   the animal being attacked
      * @return true if predator is heavier, false otherwise
      */
     private boolean isPredatorHavier(Animal predator, Animal victim) {
@@ -276,13 +288,17 @@ public class Ecosystem {
     /**
      * Checks if a group exists for the given animal.
      *
-     * @param animal the animal to check group for
+     * @param animal    the animal to check group for
      * @param groupName the name of the group
-     * @param groups the map of all groups
+     * @param groups    the map of all groups
      * @return true if the group exists, false otherwise
      */
     private boolean isGroupExists(Animal animal, String groupName, Map<AnimalType, Map<String, List<Animal>>> groups) {
         Map<String, List<Animal>> animals = groups.get(animal.getAnimalType());
         return animals.containsKey(groupName);
+    }
+
+    public String getEcosystemName() {
+        return ecosystemName;
     }
 }
