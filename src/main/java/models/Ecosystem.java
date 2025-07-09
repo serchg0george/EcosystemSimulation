@@ -15,13 +15,13 @@ import java.util.Map;
 
 public class Ecosystem {
     private final Biome biome;
-    private final List<Animal> groups;
     private final Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals;
     private final ProbabilitiesService probabilitiesService;
 
-    public Ecosystem(Biome biome, List<Animal> groups, Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals, ProbabilitiesService probabilitiesService) {
+    public Ecosystem(Biome biome,
+                     Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals,
+                     ProbabilitiesService probabilitiesService) {
         this.biome = biome;
-        this.groups = groups;
         this.ecosystemGroupedAnimals = ecosystemGroupedAnimals;
         this.probabilitiesService = probabilitiesService;
     }
@@ -45,20 +45,17 @@ public class Ecosystem {
     }
 
     /**
-     * Adds an animal to the ecosystem. First attempts to add the animal as a loner
-     * (if it meets solitary living conditions). If unsuccessful, adds the animal to
-     * an appropriate animal group.
+     * Adds new member to the group of animals depending on
+     * animal living type and kind
      *
-     * @param animal The animal to be added to the ecosystem (must not be {@code null})
+     * @param animal animal which pretend to be a part of group
      */
     public void addAnimalToEcosystem(Animal animal) {
-        if (isGroupExists(animal, animal.getGroupName(), ecosystemGroupedAnimals)) {
-            addNewMember(animal);
-            return;
-        }
-        Map<String, List<Animal>> groups = new HashMap<>();
-        groups.put(animal.getGroupName(), this.groups);
-        ecosystemGroupedAnimals.put(animal.getAnimalType(), groups);
+        AnimalType type = animal.getAnimalType();
+        String groupName = animal.getGroupName();
+        Map<String, List<Animal>> groups = ecosystemGroupedAnimals.computeIfAbsent(type, k -> new HashMap<>());
+        List<Animal> groupMembers = groups.computeIfAbsent(groupName, g -> new ArrayList<>());
+        groupMembers.add(animal);
     }
 
     /**
@@ -166,22 +163,6 @@ public class Ecosystem {
     private void isAttackValid(Animal predator, Animal victim) {
         if (!isCarnivore(predator)) throw new IllegalAttackArgumentException("Attacker must be a carnivore!");
         if (isCarnivore(victim)) throw new IllegalAttackArgumentException("Target must be a herbivore!");
-    }
-
-    /**
-     * Adds new member to the group of animals depending on
-     * animal living type and kind
-     *
-     * @param animal animal which pretend to be a part of group
-     */
-    private void addNewMember(Animal animal) {
-        AnimalType type = animal.getAnimalType();
-        String groupName = animal.getGroupName();
-
-        Map<String, List<Animal>> groups = ecosystemGroupedAnimals.computeIfAbsent(type, k -> new HashMap<>());
-
-        List<Animal> groupMembers = groups.computeIfAbsent(groupName, g -> new ArrayList<>());
-        groupMembers.add(animal);
     }
 
     /**
