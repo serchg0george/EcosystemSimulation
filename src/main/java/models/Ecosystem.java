@@ -26,12 +26,6 @@ public class Ecosystem {
         this.groups = groups;
         this.ecosystemGroupedAnimals = ecosystemGroupedAnimals;
         this.probabilitiesService = probabilitiesService;
-        Map<String, List<Animal>> lonerCarnivores = new HashMap<>();
-        lonerCarnivores.put("Loners", new ArrayList<>());
-        Map<String, List<Animal>> lonerHerbivores = new HashMap<>();
-        lonerHerbivores.put("Loners", new ArrayList<>());
-        ecosystemGroupedAnimals.put(CARNIVORE, lonerCarnivores);
-        ecosystemGroupedAnimals.put(HERBIVORE, lonerHerbivores);
     }
 
     /**
