@@ -1,10 +1,12 @@
 package factory;
 
+import models.Animal;
+
 public abstract class AnimalFactory {
-    public AnimalCreator create(String animalKind, String groupName) {
+    public Animal create(String animalKind, String groupName) {
         AnimalCreator animal = createNewAnimal(groupName);
         animal.create(animalKind);
-        return animal;
+        return (Animal) animal;
     }
     protected abstract AnimalCreator createNewAnimal(String groupName);
 }
