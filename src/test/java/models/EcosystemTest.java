@@ -60,11 +60,6 @@ class EcosystemTest {
         groupedHerbivores.put(GAZELLE_GROUP_NAME, new ArrayList<>());
         groupedCarnivores.put(HYENA_GROUP_NAME, new ArrayList<>());
         groupedCarnivores.put(LONERS_GROUP, new ArrayList<>());
-//        groupedHerbivores.put(zebra.getAnimalKind(), zebras);
-//        groupedCarnivores.put(cheetah.getAnimalKind(), cheetahs);
-//        groupedCarnivores.put(hyenaOne.getAnimalKind(), hyenas);
-//        groupedCarnivores.put(hyenaTwo.getAnimalKind(), hyenas);
-//        groupedHerbivores.put(gazelle.getAnimalKind(), gazelles);
         ecosystemAnimals.put(CARNIVORE, groupedCarnivores);
         ecosystemAnimals.put(HERBIVORE, groupedHerbivores);
         ecosystem = new Ecosystem(SAVANNA.toString(), SAVANNA, zebras, ecosystemAnimals, mockedProbabilitiesService);
@@ -80,9 +75,6 @@ class EcosystemTest {
         ecosystemAnimals.clear();
         resetIdCounter();
     }
-
-    //TODO add to all tests message in assertions
-
 
     @Test
     void testAttackReduceHunger_whenAttackSuccessful_theShouldReduceHunger() {
@@ -108,10 +100,10 @@ class EcosystemTest {
         //then
         double currentHungerHyenaOne = hyenaOneCarnivore.getCurrentHunger();
         double currentHungerHyenaTwo = hyenaTwoCarnivore.getCurrentHunger();
-        assertNotEquals(initialHungerRateHyenaOne, currentHungerHyenaOne);
-        assertNotEquals(initialHungerRateHyenaTwo, currentHungerHyenaTwo);
-        assertEquals(8.7, currentHungerHyenaOne);
-        assertEquals(25.3, currentHungerHyenaTwo);
+        assertNotEquals(initialHungerRateHyenaOne, currentHungerHyenaOne, "Initial hunger of hyena one not equals to current hunger");
+        assertNotEquals(initialHungerRateHyenaTwo, currentHungerHyenaTwo, "Initial hunger of hyena one not equals to current hunger");
+        assertEquals(8.7, currentHungerHyenaOne, "Current hunger of hyena one is equal to 8.7");
+        assertEquals(25.3, currentHungerHyenaTwo, "Current hunger of hyena one is equal to 25.3");
     }
 
     @Test
@@ -121,7 +113,7 @@ class EcosystemTest {
         ecosystem.addAnimalToEcosystem(zebra);
 
         //when //then
-        assertThrows(IllegalAttackArgumentException.class, () -> ecosystem.attack(cheetah.getId(), cheetah.getId()));
+        assertThrows(IllegalAttackArgumentException.class, () -> ecosystem.attack(cheetah.getId(), cheetah.getId()), "IllegalAttackArgumentException was thrown");
     }
 
     @Test
@@ -149,7 +141,7 @@ class EcosystemTest {
                 .toList();
         if (currentGroup.isEmpty()) return;
         int currentZebrasSize = currentGroup.size();
-        assertNotEquals(initialZebrasSize, currentZebrasSize);
+        assertNotEquals(initialZebrasSize, currentZebrasSize, "Attack was successful, zebra was killed and removed from ecosystem");
     }
 
     @Test
@@ -163,7 +155,7 @@ class EcosystemTest {
 
         //then
         int finalGroupSize = groups.size();
-        assertNotEquals(initialGroupSize, finalGroupSize);
+        assertNotEquals(initialGroupSize, finalGroupSize, "Carnivore was added");
     }
 
     @Test
@@ -177,6 +169,6 @@ class EcosystemTest {
 
         //then
         int finalGroupSize = groups.size();
-        assertNotEquals(initialGroupSize, finalGroupSize);
+        assertNotEquals(initialGroupSize, finalGroupSize, "Herbivore was added");
     }
 }

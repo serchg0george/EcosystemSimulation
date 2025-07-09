@@ -39,7 +39,7 @@ class HerbivoreTest {
         zebra.growUp(zebra.getCurrentAge());
 
         //then
-        assertNotEquals(initialAge, zebra.getCurrentAge());
+        assertNotEquals(initialAge, zebra.getCurrentAge(), "Age was increased");
     }
 
     @Test
@@ -48,8 +48,8 @@ class HerbivoreTest {
         Animal newBornZebra = zebra.breed(zebra);
 
         //when //then
-        assertEquals(HERBIVORE, newBornZebra.getAnimalType());
-        assertTrue(newBornZebra.getBiomes().contains(SAVANNA));
-        assertFalse(newBornZebra.getCurrentAge() > 0);
+        assertEquals(HERBIVORE, newBornZebra.getAnimalType(), "Created animal belongs to the herbivore, passed");
+        assertTrue(newBornZebra.getBiomes().contains(SAVANNA), "Created animal contains biome Savanna");
+        assertFalse(newBornZebra.getCurrentAge() > 0, "Age of created animal is 0");
     }
 }

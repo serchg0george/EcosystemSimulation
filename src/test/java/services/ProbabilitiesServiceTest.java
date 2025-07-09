@@ -12,7 +12,7 @@ class ProbabilitiesServiceTest {
         int chance = service.getChanceForAttack();
 
         //then
-        assertTrue(chance >= 0);
+        assertTrue(chance >= 0, "Chance is greater than zero");
     }
 
     @Test
@@ -21,6 +21,6 @@ class ProbabilitiesServiceTest {
         int chance = service.getChanceForAttack();
 
         //then
-        assertTrue(chance <= 100);
+        assertTrue(chance <= 100, "Chance is lower than 100");
     }
 }
