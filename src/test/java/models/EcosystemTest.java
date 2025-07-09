@@ -62,7 +62,7 @@ class EcosystemTest {
         groupedCarnivores.put(LONERS_GROUP, new ArrayList<>());
         ecosystemAnimals.put(CARNIVORE, groupedCarnivores);
         ecosystemAnimals.put(HERBIVORE, groupedHerbivores);
-        ecosystem = new Ecosystem(SAVANNA.toString(), SAVANNA, zebras, ecosystemAnimals, mockedProbabilitiesService);
+        ecosystem = new Ecosystem(SAVANNA, zebras, ecosystemAnimals, mockedProbabilitiesService);
     }
 
     @AfterEach

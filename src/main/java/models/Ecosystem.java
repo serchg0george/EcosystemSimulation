@@ -1,7 +1,5 @@
 package models;
 
-import static enums.AnimalType.CARNIVORE;
-import static enums.AnimalType.HERBIVORE;
 import enums.AnimalType;
 import enums.Biome;
 import exceptions.AnimalNotFoundException;
@@ -16,13 +14,13 @@ import java.util.List;
 import java.util.Map;
 
 public class Ecosystem {
-    private final String ecosystemName;
+    private final Biome biome;
     private final List<Animal> groups;
     private final Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals;
     private final ProbabilitiesService probabilitiesService;
 
-    public Ecosystem(String ecosystemName, Biome biome, List<Animal> groups, Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals, ProbabilitiesService probabilitiesService) {
-        this.ecosystemName = ecosystemName;
+    public Ecosystem(Biome biome, List<Animal> groups, Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals, ProbabilitiesService probabilitiesService) {
+        this.biome = biome;
         this.groups = groups;
         this.ecosystemGroupedAnimals = ecosystemGroupedAnimals;
         this.probabilitiesService = probabilitiesService;
@@ -63,7 +61,13 @@ public class Ecosystem {
         ecosystemGroupedAnimals.put(animal.getAnimalType(), groups);
     }
 
-    public boolean isHaveAnimals(Ecosystem ecosystem) {
+    /**
+     * Checks is there at least one animal in ecosystem
+     *
+     * @param ecosystem current ecosystem
+     * @return returns true if at least one animal in given ecosystem alive
+     */
+    public boolean isContainAnimals(Ecosystem ecosystem) {
         return ecosystem.ecosystemGroupedAnimals.values().stream()
                 .flatMap(groups -> groups.values().stream())
                 .anyMatch(animals -> !animals.isEmpty());
@@ -171,10 +175,10 @@ public class Ecosystem {
      * @param animal animal which pretend to be a part of group
      */
     private void addNewMember(Animal animal) {
-        AnimalType kind = animal.getAnimalType();
+        AnimalType type = animal.getAnimalType();
         String groupName = animal.getGroupName();
 
-        Map<String, List<Animal>> groups = ecosystemGroupedAnimals.computeIfAbsent(kind, k -> new HashMap<>());
+        Map<String, List<Animal>> groups = ecosystemGroupedAnimals.computeIfAbsent(type, k -> new HashMap<>());
 
         List<Animal> groupMembers = groups.computeIfAbsent(groupName, g -> new ArrayList<>());
         groupMembers.add(animal);
@@ -292,7 +296,7 @@ public class Ecosystem {
         return animals.containsKey(groupName);
     }
 
-    public String getEcosystemName() {
-        return ecosystemName;
+    public Biome getBiome() {
+        return biome;
     }
 }
