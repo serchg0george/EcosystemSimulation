@@ -6,25 +6,24 @@ import static enums.Biome.SAVANNA;
 import static enums.Habitat.LAND;
 import static enums.LivingType.ALONE;
 import static enums.LivingType.GROUP;
-import static models.Animal.resetIdCounter;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import enums.AnimalType;
 import enums.Biome;
 import exceptions.IllegalAttackArgumentException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import services.ProbabilitiesService;
 
 import java.util.*;
 
 class EcosystemTest {
-    private final String ZEBRA_GROUP_NAME = "zebra test";
-    private final String HYENA_GROUP_NAME = "hyena test";
-    private final String GAZELLE_GROUP_NAME = "gazelle test";
-    private final String LONERS_GROUP = "Loners";
+    private static final String ZEBRA_GROUP_NAME = "zebra test";
+    private static final String HYENA_GROUP_NAME = "hyena test";
+    private static final String GAZELLE_GROUP_NAME = "gazelle test";
+    private static final String LONERS_GROUP = "Loners";
     private final ProbabilitiesService mockedProbabilitiesService = mock(ProbabilitiesService.class);
     private final Set<Biome> biomes = Set.of(SAVANNA);
     private final Animal zebra = new Herbivore(biomes, 10, true, 50, 300, 10, LAND, HERBIVORE, "ZEBRA", GROUP, true, 80, ZEBRA_GROUP_NAME);
@@ -49,7 +48,7 @@ class EcosystemTest {
         cheetahs = new ArrayList<>();
         groupedHerbivores = new HashMap<>();
         groupedCarnivores = new HashMap<>();
-        ecosystemAnimals = new HashMap<>();
+        ecosystemAnimals = new EnumMap<>(AnimalType.class);
         zebras.add(zebra);
         gazelles.add(gazelle);
         hyenas.add(hyenaOne);
@@ -63,17 +62,6 @@ class EcosystemTest {
         ecosystemAnimals.put(CARNIVORE, groupedCarnivores);
         ecosystemAnimals.put(HERBIVORE, groupedHerbivores);
         ecosystem = new Ecosystem(SAVANNA, ecosystemAnimals, mockedProbabilitiesService);
-    }
-
-    @AfterEach
-    void tearDown() {
-        zebras.clear();
-        gazelles.clear();
-        hyenas.clear();
-        cheetahs.clear();
-        groupedHerbivores.clear();
-        ecosystemAnimals.clear();
-        resetIdCounter();
     }
 
     @Test
@@ -112,8 +100,11 @@ class EcosystemTest {
         ecosystem.addAnimalToEcosystem(cheetah);
         ecosystem.addAnimalToEcosystem(zebra);
 
-        //when //then
-        assertThrows(IllegalAttackArgumentException.class, () -> ecosystem.attack(cheetah.getId(), cheetah.getId()), "IllegalAttackArgumentException was thrown");
+        //when
+        Executable attackAction = () -> ecosystem.attack(cheetah.getId(), cheetah.getId());
+
+        //then
+        assertThrows(IllegalAttackArgumentException.class, attackAction, "IllegalAttackArgumentException was thrown");
     }
 
     @Test
@@ -127,7 +118,6 @@ class EcosystemTest {
                 .filter(group -> group.getGroupName().equals(ZEBRA_GROUP_NAME))
                 .toList();
 
-        if (initialZebrasGroup.isEmpty()) return;
         int initialZebrasSize = initialZebrasGroup.size();
         when(mockedProbabilitiesService.getChanceForAttack()).thenReturn(0);
 
@@ -139,7 +129,6 @@ class EcosystemTest {
                 .stream()
                 .filter(group -> group.getGroupName().equals(ZEBRA_GROUP_NAME))
                 .toList();
-        if (currentGroup.isEmpty()) return;
         int currentZebrasSize = currentGroup.size();
         assertNotEquals(initialZebrasSize, currentZebrasSize, "Attack was successful, zebra was killed and removed from ecosystem");
     }
