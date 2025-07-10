@@ -13,21 +13,21 @@ import java.util.HashSet;
 import java.util.Set;
 
 class HerbivoreTest {
-    private Animal zebra;
+    private static final String ZEBRA_GROUP_NAME = "zebra test";
+    private static final int ZEBRA_MAX_AGE = 50;
+    private static final int ZEBRA_WEIGHT = 300;
+    private static final int ZEBRA_REPRODUCTIVE_RATE = 10;
+    private static final int ZEBRA_ESCAPE_POINTS = 80;
+    private Herbivore zebra;
 
     @BeforeEach
     void setUp() {
-        final int zebraMaxAge = 50;
-        final int zebraWeight = 300;
-        final int zebraReproductiveRate = 10;
-        final int zebraEscapePoints = 80;
         int currentAge = 10;
         boolean isAlive = true;
         boolean isZebraInGroup = true;
         Set<Biome> biomes = new HashSet<>();
         biomes.add(SAVANNA);
-        String ZEBRA_GROUP_NAME = "zebra test";
-        zebra = new Herbivore(biomes, currentAge, isAlive, zebraMaxAge, zebraWeight, zebraReproductiveRate, LAND, HERBIVORE, "ZEBRA", GROUP, isZebraInGroup, zebraEscapePoints, ZEBRA_GROUP_NAME);
+        zebra = new Herbivore(biomes, currentAge, isAlive, ZEBRA_MAX_AGE, ZEBRA_WEIGHT, ZEBRA_REPRODUCTIVE_RATE, LAND, HERBIVORE, "ZEBRA", GROUP, isZebraInGroup, ZEBRA_ESCAPE_POINTS, ZEBRA_GROUP_NAME);
     }
 
     @Test
