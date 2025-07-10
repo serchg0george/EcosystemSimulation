@@ -26,7 +26,7 @@ public class Herbivore extends Animal {
     }
 
     @Override
-    protected Animal breed(Animal animal) {
+    public Animal breed(Animal animal) {
         final int initialAge = 0;
         return new Herbivore(
                 animal.getBiomes(),

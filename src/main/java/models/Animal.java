@@ -51,9 +51,9 @@ public abstract class Animal {
         this.groupName = groupName;
     }
 
-    protected abstract Animal breed(Animal animal);
+    public abstract Animal breed(Animal animal);
 
-    protected void growUp(int currentAge) {
+    public void growUp(int currentAge) {
         this.currentAge = ++currentAge;
     }
 
