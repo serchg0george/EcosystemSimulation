@@ -1,10 +1,14 @@
 package models;
 
-import enums.*;
+import enums.AnimalType;
+import enums.Biome;
+import enums.Habitat;
+import enums.LivingType;
 
 import java.util.Set;
 
 public abstract class Animal {
+    private static long nextId = 0;
     private final int maxAge;
     private final int weight;
     private final int reproductiveRate;
@@ -15,7 +19,6 @@ public abstract class Animal {
     private final String animalKind;
     private final String groupName;
     private final long id;
-    private static long nextId = 0;
     private int currentAge;
     private boolean isAlive;
     private boolean isInGroup;
@@ -52,10 +55,6 @@ public abstract class Animal {
 
     protected void growUp(int currentAge) {
         this.currentAge = ++currentAge;
-    }
-
-    protected static void resetIdCounter() {
-        nextId = 0;
     }
 
     public long getId() {
