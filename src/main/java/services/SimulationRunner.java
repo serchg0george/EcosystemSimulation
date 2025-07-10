@@ -6,15 +6,6 @@ import static enums.Biome.*;
 import enums.AnimalType;
 import enums.Biome;
 import exceptions.EcosystemNotFoundException;
-import factory.AnimalFactory;
-import factory.carnivores.CheetahFactory;
-import factory.carnivores.HyenaFactory;
-import factory.carnivores.LionFactory;
-import factory.carnivores.TigerFactory;
-import factory.herbivores.BuffaloFactory;
-import factory.herbivores.GazelleFactory;
-import factory.herbivores.HareFactory;
-import factory.herbivores.ZebraFactory;
 import models.Animal;
 import models.Ecosystem;
 
@@ -22,19 +13,12 @@ import java.util.*;
 
 public class SimulationRunner {
     private final ProbabilitiesService probabilitiesService;
-    private final List<Animal> groups = new ArrayList<>();
-    private final Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals = new HashMap<>();
-    AnimalFactory zebraFactory = new ZebraFactory();
-    AnimalFactory hareFactory = new HareFactory();
-    AnimalFactory gazelleFactory = new GazelleFactory();
-    AnimalFactory buffaloFactory = new BuffaloFactory();
-    AnimalFactory lionFactory = new LionFactory();
-    AnimalFactory cheetahFactory = new CheetahFactory();
-    AnimalFactory tigerFactory = new TigerFactory();
-    AnimalFactory hyenaFactory = new HyenaFactory();
+    private final AnimalFactory animalFactory;
+    private final Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals = new EnumMap<>(AnimalType.class);
 
-    public SimulationRunner(ProbabilitiesService probabilitiesService) {
+    public SimulationRunner(ProbabilitiesService probabilitiesService, AnimalFactory animalFactory) {
         this.probabilitiesService = probabilitiesService;
+        this.animalFactory = animalFactory;
         Map<String, List<Animal>> lonerCarnivores = new HashMap<>();
         Map<String, List<Animal>> lonerHerbivores = new HashMap<>();
         ecosystemGroupedAnimals.put(CARNIVORE, lonerCarnivores);
@@ -112,61 +96,19 @@ public class SimulationRunner {
      * @param chosenEcosystem the ecosystem to which animals will be added
      */
     private void createMultipleAnimals(Scanner input, String kind, String group, Ecosystem chosenEcosystem) {
-        while (true) {
+        boolean isInvalidInteger = true;
+        while (isInvalidInteger) {
             System.out.println("Needed amount (integer): ");
             if (input.hasNextInt()) {
                 int amount = input.nextInt();
                 input.nextLine();
-                for (int i = 0; i < amount; i++) {
-                    Optional<Animal> createdAnimal = callFactory(kind, group);
-                    if (createdAnimal.isEmpty()) {
-                        System.out.println("Creation failed!");
-                        continue;
-                    }
-                    chosenEcosystem.addAnimalToEcosystem(createdAnimal.get());
-                }
-                break;
+                animalFactory.createAnimals(chosenEcosystem, kind, group, amount);
+                isInvalidInteger = false;
             } else {
                 System.out.println("Invalid input! Please enter a valid integer.");
                 input.nextLine();
             }
         }
-    }
-
-    /**
-     * Calls the appropriate animal factory based on the animal kind and returns an Optional
-     * containing the created animal if successful.
-     *
-     * @param kind  the type of animal to create
-     * @param group the group name the animal will belong to
-     * @return an Optional containing the created Animal or an empty Optional if creation failed
-     */
-    private Optional<Animal> callFactory(String kind, String group) {
-        if (kind.equalsIgnoreCase("zebra")) {
-            return Optional.of(zebraFactory.create(kind, group));
-        }
-        if (kind.equalsIgnoreCase("hare")) {
-            return Optional.of(hareFactory.create(kind, group));
-        }
-        if (kind.equalsIgnoreCase("gazelle")) {
-            return Optional.of(gazelleFactory.create(kind, group));
-        }
-        if (kind.equalsIgnoreCase("buffalo")) {
-            return Optional.of(buffaloFactory.create(kind, group));
-        }
-        if (kind.equalsIgnoreCase("lion")) {
-            return Optional.of(lionFactory.create(kind, group));
-        }
-        if (kind.equalsIgnoreCase("cheetah")) {
-            return Optional.of(cheetahFactory.create(kind, group));
-        }
-        if (kind.equalsIgnoreCase("tiger")) {
-            return Optional.of(tigerFactory.create(kind, group));
-        }
-        if (kind.equalsIgnoreCase("hyena")) {
-            return Optional.of(hyenaFactory.create(kind, group));
-        }
-        return Optional.empty();
     }
 
     /**
@@ -201,11 +143,11 @@ public class SimulationRunner {
     protected Ecosystem createEcosystem() {
         try (Scanner input = new Scanner(System.in)) {
             Biome biome;
-            System.out.println("Choose biome of new Ecosystem and enter chosen one below");
-            for (Biome b : values()) {
-                System.out.println(b.name());
+            System.out.println("Choose biome for new Ecosystem and enter the number of the chosen one below");
+            for (int i = 0; i < values().length; i++) {
+                System.out.println(i + " " + values()[i]);
             }
-            biome = getBiomeFromStringOrDefault(input.nextLine());
+            biome = getBiome(input.nextInt());
             return new Ecosystem(biome, ecosystemGroupedAnimals, probabilitiesService);
         }
     }
@@ -226,19 +168,13 @@ public class SimulationRunner {
     }
 
     /**
-     * Returns the Biome enum constant matching the provided string, or the default {@code SAVANNA}
-     * if no match is found.
+     * Returns the Biome enum constant matching the provided number of biome
      *
-     * @param biome the name of the biome to parse
-     * @return the corresponding Biome enum value or {@code SAVANNA} if not recognized
+     * @param biomeNumber the number of the biome
+     * @return matching provided number biome
      */
-    private Biome getBiomeFromStringOrDefault(String biome) {
-        for (Biome b : values()) {
-            if (b.name().equalsIgnoreCase(biome)) {
-                return b;
-            }
-        }
-        return SAVANNA;
+    private Biome getBiome(int biomeNumber) {
+        return values()[biomeNumber];
     }
 
     /**
