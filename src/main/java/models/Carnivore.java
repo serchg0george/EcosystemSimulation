@@ -52,7 +52,7 @@ public class Carnivore extends Animal {
                 getHungerRate());
     }
 
-    protected boolean isDiedFromHunger() {
+    protected boolean hasDiedFromHunger() {
         if (currentHunger >= 100) {
             setAlive(false);
             return true;
