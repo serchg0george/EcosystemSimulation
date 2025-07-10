@@ -26,18 +26,17 @@ class EcosystemTest {
     private static final String LONERS_GROUP = "Loners";
     private final ProbabilitiesService mockedProbabilitiesService = mock(ProbabilitiesService.class);
     private final Set<Biome> biomes = Set.of(SAVANNA);
-    private final Animal zebra = new Herbivore(biomes, 10, true, 50, 300, 10, LAND, HERBIVORE, "ZEBRA", GROUP, true, 80, ZEBRA_GROUP_NAME);
-    private final Animal gazelle = new Herbivore(biomes, 10, true, 25, 25, 5, LAND, HERBIVORE, "GAZELLE", GROUP, true, 80, GAZELLE_GROUP_NAME);
-    private final Animal cheetah = new Carnivore(biomes, 10, true, 30, 60, 5, LAND, CARNIVORE, ALONE, "CHEETAH", false, 110, LONERS_GROUP, 15);
-    private final Animal hyenaOne = new Carnivore(biomes, 10, true, 24, 50, 5, LAND, CARNIVORE, GROUP, "HYENA", true, 80, HYENA_GROUP_NAME, 14);
-    private final Animal hyenaTwo = new Carnivore(biomes, 10, true, 24, 50, 5, LAND, CARNIVORE, GROUP, "HYENA", true, 80, HYENA_GROUP_NAME, 14);
-    private List<Animal> zebras;
-    private List<Animal> gazelles;
-    private List<Animal> hyenas;
-    private List<Animal> cheetahs;
+    private final Herbivore zebra = new Herbivore(biomes, 10, true, 50, 300, 10, LAND, HERBIVORE, "ZEBRA", GROUP, true, 80, ZEBRA_GROUP_NAME);
+    private final Herbivore gazelle = new Herbivore(biomes, 10, true, 25, 25, 5, LAND, HERBIVORE, "GAZELLE", GROUP, true, 80, GAZELLE_GROUP_NAME);
+    private final Carnivore cheetah = new Carnivore(biomes, 10, true, 30, 60, 5, LAND, CARNIVORE, ALONE, "CHEETAH", false, 110, LONERS_GROUP, 15);
+    private final Carnivore hyenaOne = new Carnivore(biomes, 10, true, 24, 50, 5, LAND, CARNIVORE, GROUP, "HYENA", true, 80, HYENA_GROUP_NAME, 14);
+    private final Carnivore hyenaTwo = new Carnivore(biomes, 10, true, 24, 50, 5, LAND, CARNIVORE, GROUP, "HYENA", true, 80, HYENA_GROUP_NAME, 14);
+    private List<Herbivore> zebras;
+    private List<Herbivore> gazelles;
+    private List<Carnivore> hyenas;
+    private List<Carnivore> cheetahs;
     private Map<String, List<Animal>> groupedHerbivores;
     private Map<String, List<Animal>> groupedCarnivores;
-    private Map<AnimalType, Map<String, List<Animal>>> ecosystemAnimals;
     private Ecosystem ecosystem;
 
     @BeforeEach
@@ -48,7 +47,7 @@ class EcosystemTest {
         cheetahs = new ArrayList<>();
         groupedHerbivores = new HashMap<>();
         groupedCarnivores = new HashMap<>();
-        ecosystemAnimals = new EnumMap<>(AnimalType.class);
+        Map<AnimalType, Map<String, List<Animal>>> ecosystemAnimals = new EnumMap<>(AnimalType.class);
         zebras.add(zebra);
         gazelles.add(gazelle);
         hyenas.add(hyenaOne);
@@ -70,8 +69,8 @@ class EcosystemTest {
         ecosystem.addAnimalToEcosystem(gazelle);
         ecosystem.addAnimalToEcosystem(hyenaOne);
         ecosystem.addAnimalToEcosystem(hyenaTwo);
-        Carnivore hyenaOneCarnivore = (Carnivore) hyenaOne;
-        Carnivore hyenaTwoCarnivore = (Carnivore) hyenaTwo;
+        Carnivore hyenaOneCarnivore = hyenaOne;
+        Carnivore hyenaTwoCarnivore = hyenaTwo;
         hyenaOneCarnivore.increaseHunger();
         hyenaOneCarnivore.increaseHunger();
         hyenaOneCarnivore.increaseHunger();
