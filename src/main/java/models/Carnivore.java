@@ -57,11 +57,10 @@ public class Carnivore extends Animal {
             setAlive(false);
             return true;
         }
-        increaseHunger();
         return false;
     }
 
-    protected void increaseHunger() {
+    public void increaseHunger() {
         currentHunger += hungerRate;
     }
 
