@@ -13,7 +13,7 @@ import java.util.Set;
 
 class CarnivoreTest {
 
-    Carnivore tiger;
+    private Carnivore tiger;
 
     @BeforeEach
     void setUp() {
