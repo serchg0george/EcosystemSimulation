@@ -49,18 +49,6 @@ public class AnimalFactory {
     }
 
     /**
-     * Registers a new animal type with the factory.
-     * The animal kind is case-insensitive (converted to lowercase internally).
-     *
-     * @param kind     the name of the animal type to register (e.g., "zebra")
-     * @param function the creation function that accepts a group name and returns
-     *                 a configured {@link models.Animal} instance
-     */
-    public void registerAnimal(String kind, Function<String, Animal> function) {
-        animals.put(kind.toLowerCase(), function);
-    }
-
-    /**
      * Creates multiple animals of a specified type and adds them to an ecosystem.
      *
      * @param ecosystem  the target ecosystem to add animals to
@@ -74,5 +62,17 @@ public class AnimalFactory {
         for (int i = 0; i < count; i++) {
             ecosystem.addAnimalToEcosystem(animalFunction.apply(groupName));
         }
+    }
+
+    /**
+     * Registers a new animal type with the factory.
+     * The animal kind is case-insensitive (converted to lowercase internally).
+     *
+     * @param kind     the name of the animal type to register (e.g., "zebra")
+     * @param function the creation function that accepts a group name and returns
+     *                 a configured {@link models.Animal} instance
+     */
+    private void registerAnimal(String kind, Function<String, Animal> function) {
+        animals.put(kind.toLowerCase(), function);
     }
 }
