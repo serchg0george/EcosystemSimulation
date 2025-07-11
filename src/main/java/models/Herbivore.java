@@ -4,6 +4,11 @@ import enums.*;
 
 import java.util.Set;
 
+/**
+ * Represents a herbivorous animal that Extends the base {@link Animal} class
+ * with herbivore-specific attributes. Herbivores have specialized escape
+ * capabilities to avoid predators.
+ */
 public class Herbivore extends Animal {
     private final int escapePoints;
 
@@ -25,6 +30,13 @@ public class Herbivore extends Animal {
         this.escapePoints = escapePoints;
     }
 
+    /**
+     * Creates a new offspring through reproduction.
+     * The offspring inherits characteristics from this parent and starts at age 0.
+     *
+     * @param animal The parent animal providing genetic traits
+     * @return New Herbivore offspring with initialized traits
+     */
     @Override
     public Animal breed(Animal animal) {
         final int initialAge = 0;

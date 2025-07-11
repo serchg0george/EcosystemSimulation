@@ -7,6 +7,11 @@ import enums.LivingType;
 
 import java.util.Set;
 
+/**
+ * Represents a carnivorous animal in a wildlife simulation. Extends the base {@link Animal} class
+ * with carnivore-specific attributes like attack strength and hunger management. Carnivores can
+ * attack prey, experience hunger, and die if starvation reaches critical levels.
+ */
 public class Carnivore extends Animal {
     private final int attackPoints;
     private final int hungerRate;
@@ -32,6 +37,13 @@ public class Carnivore extends Animal {
         this.hungerRate = hungerRate;
     }
 
+    /**
+     * Creates a new offspring through reproduction.
+     * The offspring inherits characteristics from this parent and starts at age 0.
+     *
+     * @param animal The parent animal providing genetic traits
+     * @return New Herbivore offspring with initialized traits
+     */
     @Override
     public Animal breed(Animal animal) {
         final int initialAge = 0;
@@ -52,6 +64,12 @@ public class Carnivore extends Animal {
                 getHungerRate());
     }
 
+    /**
+     * Checks if this carnivore has starved to death. Sets alive status to false
+     * if hunger reaches 100%.
+     *
+     * @return true if animal died from hunger, false otherwise
+     */
     protected boolean hasDiedFromHunger() {
         if (currentHunger >= 100) {
             setAlive(false);
@@ -60,6 +78,9 @@ public class Carnivore extends Animal {
         return false;
     }
 
+    /**
+     * Increases current hunger level by this carnivore's predefined hunger rate.
+     */
     public void increaseHunger() {
         currentHunger += hungerRate;
     }

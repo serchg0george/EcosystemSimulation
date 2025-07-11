@@ -7,6 +7,14 @@ import enums.LivingType;
 
 import java.util.Set;
 
+/**
+ * Represents an abstract biological entity in a simulation, defining core
+ * characteristics and behaviors common to all animals. This class tracks
+ * biological states (age, life status), physical attributes, habitats,
+ * social grouping, and reproductive capabilities. Concrete subclasses must
+ * implement species-specific breeding logic.
+ *
+ */
 public abstract class Animal {
     private static long nextId = 0;
     private final int maxAge;
@@ -51,8 +59,17 @@ public abstract class Animal {
         this.groupName = groupName;
     }
 
+    /**
+     * Breeds with another animal to produce offspring. Concrete implementations
+     * define species-specific reproduction rules
+     *
+     * @param animal The parent animal(must not be {@code null})
+     */
     public abstract Animal breed(Animal animal);
 
+    /**
+     * Advances the animal's age by one unit
+     */
     public void growUp(int currentAge) {
         this.currentAge = ++currentAge;
     }

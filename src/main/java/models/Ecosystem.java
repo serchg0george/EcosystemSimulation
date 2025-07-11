@@ -7,6 +7,16 @@ import services.ProbabilitiesService;
 
 import java.util.*;
 
+/**
+ * Represents an ecosystem within a specific biome, managing groups of animals and their interactions.
+ * Handles animal attacks, hunger mechanics, group feeding dynamics, and extinction checks.
+ * Also manages the addition and removal of animals and groups as the simulation progresses.
+ *
+ * @see Biome
+ * @see Animal
+ * @see AnimalType
+ * @see ProbabilitiesService
+ */
 public class Ecosystem {
     private final Biome biome;
     private final Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals;
@@ -50,6 +60,11 @@ public class Ecosystem {
         groupMembers.add(animal);
     }
 
+    /**
+     * Checks if any animal type has gone extinct (no living members remain).
+     *
+     * @return true if at least one animal type has no living members, false otherwise
+     */
     public boolean hasExtinctAnimalType() {
         for (AnimalType type : AnimalType.values()) {
             Map<String, List<Animal>> groups = ecosystemGroupedAnimals.get(type);
@@ -69,6 +84,12 @@ public class Ecosystem {
         return false;
     }
 
+    /**
+     * Increases hunger levels for all carnivores in the ecosystem.
+     * Removes carnivores that die from hunger.
+     *
+     * @param groups Map of carnivore groups to process
+     */
     public void increaseHungerOfCarnivore(Map<String, List<Animal>> groups) {
         groups.forEach((groupName, animals) -> {
             Iterator<Animal> iterator = animals.iterator();
@@ -110,6 +131,13 @@ public class Ecosystem {
         predatorGroup.forEach(groupMember -> feedGroupMember(predator, groupMember, hungerDecreasePerAnimal));
     }
 
+    /**
+     * Feeds a specific member of the predator's group, either the main attacker or a supporting carnivore.
+     *
+     * @param predator the main attacking carnivore
+     * @param groupMember a member of the predator's group to feed
+     * @param hungerDecreasePerAnimal the base amount of hunger decrease per group member
+     */
     private void feedGroupMember(Carnivore predator, Animal groupMember, double hungerDecreasePerAnimal) {
         if (groupMember.getId() == predator.getId()) {
             feedAttackerIntoGroup(hungerDecreasePerAnimal, predator);
@@ -118,6 +146,12 @@ public class Ecosystem {
         }
     }
 
+    /**
+     * Feeds the main attacker in a group attack, decreasing its hunger by twice the base amount.
+     *
+     * @param hungerDecreasePerAnimal the base amount of hunger decrease per group member
+     * @param attacker the main attacking carnivore
+     */
     private void feedAttackerIntoGroup(double hungerDecreasePerAnimal, Carnivore attacker) {
         if (isUpdatedHungerGreaterThanInitial(hungerDecreasePerAnimal, attacker.getCurrentHunger(), attacker)) {
             return;
@@ -126,6 +160,12 @@ public class Ecosystem {
         attacker.setCurrentHunger(roundToOneDecimal(calculatedHunger));
     }
 
+    /**
+     * Feeds a supporting carnivore in the group, decreasing its hunger by the base amount.
+     *
+     * @param hungerDecreasePerAnimal the base amount of hunger decrease
+     * @param supportingCarnivore a supporting carnivore in the group
+     */
     private void feedSupportersIntoGroup(double hungerDecreasePerAnimal, Carnivore supportingCarnivore) {
         double calculatedHunger = supportingCarnivore.getCurrentHunger() - hungerDecreasePerAnimal;
         supportingCarnivore.setCurrentHunger(roundToOneDecimal(calculatedHunger));
@@ -155,6 +195,12 @@ public class Ecosystem {
         }
     }
 
+    /**
+     * Feeds a solitary predator after a successful attack, decreasing its hunger.
+     *
+     * @param predator the solitary carnivore
+     * @param victim the herbivore that was killed
+     */
     private void feedLoner(Carnivore predator, Herbivore victim) {
         double initHunger = predator.getCurrentHunger();
         double updatedHunger = calculateHungerDecreaseAmount(predator, victim);
@@ -162,6 +208,11 @@ public class Ecosystem {
         predator.setCurrentHunger(updatedHunger);
     }
 
+    /**
+     * Removes a dead animal from its group and removes the group if it becomes extinct.
+     *
+     * @param target the dead animal to remove
+     */
     private void removeDeadAnimal(Animal target) {
         ecosystemGroupedAnimals.get(target.getAnimalType())
                 .get(target.getGroupName())
@@ -171,6 +222,11 @@ public class Ecosystem {
         }
     }
 
+    /**
+     * Removes the group of the given animal from the ecosystem, as the group has become extinct.
+     *
+     * @param target an animal whose group is extinct
+     */
     private void removeExtinctGroup(Animal target) {
         ecosystemGroupedAnimals.get(target.getAnimalType()).remove(target.getGroupName());
     }
