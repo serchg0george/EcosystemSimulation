@@ -13,6 +13,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.Scanner;
 
 class SimulationRunnerTest {
 
@@ -40,10 +41,10 @@ class SimulationRunnerTest {
     void testCreateEcosystem_whenValidBiomeProvided_thenEcosystemCreatedWithThatBiome() {
         //given
         String input = "3\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
         //when
-        Ecosystem result = simulationRunner.createEcosystem();
+        Ecosystem result = simulationRunner.createEcosystem(scanner);
 
         //then
         assertEquals(DESERT, result.getBiome());

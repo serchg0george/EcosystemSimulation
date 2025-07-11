@@ -58,16 +58,15 @@ public class SimulationRunner {
      *
      * @return the newly created Ecosystem instance
      */
-    protected Ecosystem createEcosystem() {
-        try (Scanner input = new Scanner(System.in)) {
+    protected Ecosystem createEcosystem(Scanner input) {
             Biome biome;
             System.out.println("Choose biome for new Ecosystem and enter the number of the chosen one below");
             for (int i = 0; i < values().length; i++) {
                 System.out.println(i + " " + values()[i]);
             }
             biome = getBiome(input.nextInt());
+            input.nextLine();
             return new Ecosystem(biome, ecosystemGroupedAnimals, probabilitiesService);
-        }
     }
 
     /**
@@ -287,7 +286,7 @@ public class SimulationRunner {
      * @return the ecosystem chosen or created by the user
      */
     private Ecosystem selectOrCreateEcosystem(List<Ecosystem> ecosystems, Scanner input) {
-        Ecosystem pickedEcosystem = ecosystems.stream().findFirst().orElseThrow();
+        Ecosystem pickedEcosystem;
         System.out.println("1 - I will chose ecosystem from the list below");
         System.out.println("2 - I want to create new ecosystem");
         if (input.nextLine().equals("1")) {
@@ -296,8 +295,8 @@ public class SimulationRunner {
             }
             pickedEcosystem = pickEcosystem(ecosystems, input.nextInt());
             input.nextLine();
-        } else if (input.nextLine().equals("2")) {
-            Ecosystem createdEcosystem = createEcosystem();
+        } else {
+            Ecosystem createdEcosystem = createEcosystem(input);
             ecosystems.add(createdEcosystem);
             pickedEcosystem = pickEcosystem(ecosystems, ecosystems.size() - 1);
         }
