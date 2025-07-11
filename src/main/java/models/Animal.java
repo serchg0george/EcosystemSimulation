@@ -21,9 +21,9 @@ public abstract class Animal {
     private final long id;
     private int currentAge;
     private boolean isAlive;
-    private boolean isInGroup;
+    private final boolean isInGroup;
 
-    public Animal(Set<Biome> biomes,
+    protected Animal(Set<Biome> biomes,
                   int currentAge,
                   boolean isAlive,
                   int maxAge,
