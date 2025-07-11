@@ -321,7 +321,7 @@ public class SimulationRunner {
      * @param biomeNumber the number of the biome
      * @return matching provided number biome
      */
-    private Biome getBiome(int biomeNumber) {
+    protected Biome getBiome(int biomeNumber) {
         return values()[biomeNumber];
     }
 
