@@ -54,28 +54,12 @@ public class SimulationRunner {
     }
 
     /**
-     * Creates a new ecosystem by prompting the user to select a biome.
-     *
-     * @return the newly created Ecosystem instance
-     */
-    protected Ecosystem createEcosystem(Scanner input) {
-            Biome biome;
-            System.out.println("Choose biome for new Ecosystem and enter the number of the chosen one below");
-            for (int i = 0; i < values().length; i++) {
-                System.out.println(i + " " + values()[i]);
-            }
-            biome = getBiome(input.nextInt());
-            input.nextLine();
-            return new Ecosystem(biome, ecosystemGroupedAnimals, probabilitiesService);
-    }
-
-    /**
      * Prompts the user to repeatedly create animal groups until they indicate completion.
      *
      * @param input           Scanner for reading user input
      * @param chosenEcosystem Ecosystem where animals will be added
      */
-    private void promptForAnimalCreation(Scanner input, Ecosystem chosenEcosystem) {
+    protected void promptForAnimalCreation(Scanner input, Ecosystem chosenEcosystem) {
         boolean isContinueCreation = true;
         while (isContinueCreation) {
             System.out.println("Will you want to create another animal/-s? Y/N");
@@ -94,7 +78,7 @@ public class SimulationRunner {
      * @param chosenEcosystem Ecosystem being simulated
      * @param iterationNumber Starting iteration count (typically 1)
      */
-    private void runSimulationLoop(Ecosystem chosenEcosystem, int iterationNumber) {
+    protected void runSimulationLoop(Ecosystem chosenEcosystem, int iterationNumber) {
         while (!chosenEcosystem.hasExtinctAnimalType()) {
             System.out.println("number " + iterationNumber);
             ageAllAnimals(chosenEcosystem);
@@ -110,7 +94,7 @@ public class SimulationRunner {
      *
      * @param ecosystem Ecosystem to process
      */
-    private void executeLifecyclePhase(Ecosystem ecosystem) {
+    protected void executeLifecyclePhase(Ecosystem ecosystem) {
         ecosystem.increaseHungerOfCarnivore(ecosystem.getEcosystemGroupedAnimals().get(CARNIVORE));
         Collection<List<Animal>> carnivoreLists = getCarnivoreGroups(ecosystem);
         Collection<List<Animal>> herbivoreLists = getHerbivoreGroups(ecosystem);
@@ -130,7 +114,7 @@ public class SimulationRunner {
      * @param animalLists Collection of animal groups for the type being checked
      * @param animalType  Animal type (CARNIVORE/HERBIVORE) to evaluate
      */
-    private void checkExtinction(Collection<List<Animal>> animalLists, AnimalType animalType) {
+    protected void checkExtinction(Collection<List<Animal>> animalLists, AnimalType animalType) {
         List<Animal> aliveAnimals = animalLists.stream()
                 .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
@@ -145,30 +129,13 @@ public class SimulationRunner {
     }
 
     /**
-     * Randomly selects a living animal from the provided collection of animal groups.
-     *
-     * @param animalGroups Collection of animal groups to select from
-     * @return Randomly selected living Animal instance
-     */
-    private Animal selectRandomAnimal(Collection<List<Animal>> animalGroups) {
-        List<Animal> animals = animalGroups.stream()
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .filter(Objects::nonNull)
-                .filter(Animal::isAlive)
-                .toList();
-
-        return animals.get(random.nextInt(animals.size()));
-    }
-
-    /**
      * Processes breeding for all animals. Animals breed when their age is divisible
      * by the current iteration number.
      *
      * @param ecosystem       Ecosystem containing animals to breed
      * @param iterationNumber Current simulation iteration (used for breeding condition)
      */
-    private void processBreeding(Ecosystem ecosystem, int iterationNumber) {
+    protected void processBreeding(Ecosystem ecosystem, int iterationNumber) {
         Collection<List<Animal>> carnivores = getCarnivoreGroups(ecosystem);
         Collection<List<Animal>> herbivores = getHerbivoreGroups(ecosystem);
 
@@ -192,7 +159,7 @@ public class SimulationRunner {
      *
      * @param ecosystem Ecosystem containing animals to age
      */
-    private void ageAllAnimals(Ecosystem ecosystem) {
+    protected void ageAllAnimals(Ecosystem ecosystem) {
         Collection<List<Animal>> carnivores = getCarnivoreGroups(ecosystem);
         Collection<List<Animal>> herbivores = getHerbivoreGroups(ecosystem);
 
@@ -206,32 +173,12 @@ public class SimulationRunner {
     }
 
     /**
-     * Retrieves all herbivore groups from the ecosystem.
-     *
-     * @param ecosystem Ecosystem to query
-     * @return Collection of herbivore group lists
-     */
-    private Collection<List<Animal>> getHerbivoreGroups(Ecosystem ecosystem) {
-        return ecosystem.getEcosystemGroupedAnimals().get(HERBIVORE).values();
-    }
-
-    /**
-     * Retrieves all carnivore groups from the ecosystem.
-     *
-     * @param ecosystem Ecosystem to query
-     * @return Collection of carnivore group lists
-     */
-    private Collection<List<Animal>> getCarnivoreGroups(Ecosystem ecosystem) {
-        return ecosystem.getEcosystemGroupedAnimals().get(CARNIVORE).values();
-    }
-
-    /**
      * Initiates the process of adding animals to a chosen ecosystem.
      * Displays a list of allowed animals and prompts the user to select one or more for creation.
      *
      * @param chosenEcosystem the ecosystem to which animals will be added
      */
-    private void addAnimalsToEcosystem(Ecosystem chosenEcosystem, Scanner input) {
+    protected void addAnimalsToEcosystem(Ecosystem chosenEcosystem, Scanner input) {
         final List<String> allowedAnimals = List.of("Zebra", "Hare", "Gazelle", "Buffalo",
                 "Lion", "Cheetah", "Tiger", "Hyena");
         System.out.println("Which animal to create? Pick from the list below: ");
@@ -246,7 +193,7 @@ public class SimulationRunner {
      * @param input           the Scanner used for reading user input
      * @param chosenEcosystem the ecosystem to which animals will be added
      */
-    private void handleAnimalCreation(Scanner input, Ecosystem chosenEcosystem) {
+    protected void handleAnimalCreation(Scanner input, Ecosystem chosenEcosystem) {
         System.out.println("Print animal kind: ");
         String kind = input.nextLine();
         System.out.println("Print animal group: ");
@@ -263,7 +210,7 @@ public class SimulationRunner {
      * @param group           the group name the animal will belong to
      * @param chosenEcosystem the ecosystem to which animals will be added
      */
-    private void createMultipleAnimals(Scanner input, String kind, String group, Ecosystem chosenEcosystem) {
+    protected void createMultipleAnimals(Scanner input, String kind, String group, Ecosystem chosenEcosystem) {
         boolean isInvalidInteger = true;
         while (isInvalidInteger) {
             System.out.println("Needed amount (integer): ");
@@ -280,12 +227,49 @@ public class SimulationRunner {
     }
 
     /**
+     * Randomly selects a living animal from the provided collection of animal groups.
+     *
+     * @param animalGroups Collection of animal groups to select from
+     * @return Randomly selected living Animal instance
+     */
+    protected Animal selectRandomAnimal(Collection<List<Animal>> animalGroups) {
+        List<Animal> animals = animalGroups.stream()
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .filter(Objects::nonNull)
+                .filter(Animal::isAlive)
+                .toList();
+
+        return animals.get(random.nextInt(animals.size()));
+    }
+
+    /**
+     * Retrieves all herbivore groups from the ecosystem.
+     *
+     * @param ecosystem Ecosystem to query
+     * @return Collection of herbivore group lists
+     */
+    protected Collection<List<Animal>> getHerbivoreGroups(Ecosystem ecosystem) {
+        return ecosystem.getEcosystemGroupedAnimals().get(HERBIVORE).values();
+    }
+
+    /**
+     * Retrieves all carnivore groups from the ecosystem.
+     *
+     * @param ecosystem Ecosystem to query
+     * @return Collection of carnivore group lists
+     */
+    protected Collection<List<Animal>> getCarnivoreGroups(Ecosystem ecosystem) {
+        return ecosystem.getEcosystemGroupedAnimals().get(CARNIVORE).values();
+    }
+
+    /**
      * Allows the user to choose an existing ecosystem from a list or create a new one.
      *
      * @param ecosystems the set of available ecosystems
      * @return the ecosystem chosen or created by the user
      */
-    private Ecosystem selectOrCreateEcosystem(List<Ecosystem> ecosystems, Scanner input) {
+    protected Ecosystem selectOrCreateEcosystem(List<Ecosystem> ecosystems, Scanner input) {
         Ecosystem pickedEcosystem;
         System.out.println("1 - I will chose ecosystem from the list below");
         System.out.println("2 - I want to create new ecosystem");
@@ -304,6 +288,22 @@ public class SimulationRunner {
     }
 
     /**
+     * Creates a new ecosystem by prompting the user to select a biome.
+     *
+     * @return the newly created Ecosystem instance
+     */
+    protected Ecosystem createEcosystem(Scanner input) {
+        Biome biome;
+        System.out.println("Choose biome for new Ecosystem and enter the number of the chosen one below");
+        for (int i = 0; i < values().length; i++) {
+            System.out.println(i + " " + values()[i]);
+        }
+        biome = getBiome(input.nextInt());
+        input.nextLine();
+        return new Ecosystem(biome, ecosystemGroupedAnimals, probabilitiesService);
+    }
+
+    /**
      * Finds an ecosystem from the given set by biome name.
      *
      * @param ecosystems      the set of available ecosystems
@@ -311,7 +311,7 @@ public class SimulationRunner {
      * @return the matching Ecosystem instance
      * @throws EcosystemNotFoundException if no ecosystem with the given name is found
      */
-    private Ecosystem pickEcosystem(List<Ecosystem> ecosystems, int ecosystemNumber) {
+    protected Ecosystem pickEcosystem(List<Ecosystem> ecosystems, int ecosystemNumber) {
         return ecosystems.get(ecosystemNumber);
     }
 

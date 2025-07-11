@@ -119,69 +119,6 @@ public class Ecosystem {
     }
 
     /**
-     * Decreases hunger for all members of the predator's group after a successful attack.
-     * The main predator gets a larger share of the hunger decrease.
-     *
-     * @param predator the attacking carnivore
-     * @param victim   the herbivore that was attacked
-     */
-    private void decreaseGroupHunger(Carnivore predator, Herbivore victim) {
-        List<Animal> predatorGroup = ecosystemGroupedAnimals.get(predator.getAnimalType()).get(predator.getGroupName());
-        double hungerDecreasePerAnimal = calculateHungerDecreaseAmount(predator, victim) / ((double) predatorGroup.size() + 1);
-        predatorGroup.forEach(groupMember -> feedGroupMember(predator, groupMember, hungerDecreasePerAnimal));
-    }
-
-    /**
-     * Feeds a specific member of the predator's group, either the main attacker or a supporting carnivore.
-     *
-     * @param predator the main attacking carnivore
-     * @param groupMember a member of the predator's group to feed
-     * @param hungerDecreasePerAnimal the base amount of hunger decrease per group member
-     */
-    private void feedGroupMember(Carnivore predator, Animal groupMember, double hungerDecreasePerAnimal) {
-        if (groupMember.getId() == predator.getId()) {
-            feedAttackerIntoGroup(hungerDecreasePerAnimal, predator);
-        } else if (groupMember instanceof Carnivore supportingCarnivore && !isUpdatedHungerGreaterThanInitial(hungerDecreasePerAnimal, supportingCarnivore.getCurrentHunger(), supportingCarnivore)) {
-            feedSupportersIntoGroup(hungerDecreasePerAnimal, supportingCarnivore);
-        }
-    }
-
-    /**
-     * Feeds the main attacker in a group attack, decreasing its hunger by twice the base amount.
-     *
-     * @param hungerDecreasePerAnimal the base amount of hunger decrease per group member
-     * @param attacker the main attacking carnivore
-     */
-    private void feedAttackerIntoGroup(double hungerDecreasePerAnimal, Carnivore attacker) {
-        if (isUpdatedHungerGreaterThanInitial(hungerDecreasePerAnimal, attacker.getCurrentHunger(), attacker)) {
-            return;
-        }
-        double calculatedHunger = attacker.getCurrentHunger() - (hungerDecreasePerAnimal * 2);
-        attacker.setCurrentHunger(roundToOneDecimal(calculatedHunger));
-    }
-
-    /**
-     * Feeds a supporting carnivore in the group, decreasing its hunger by the base amount.
-     *
-     * @param hungerDecreasePerAnimal the base amount of hunger decrease
-     * @param supportingCarnivore a supporting carnivore in the group
-     */
-    private void feedSupportersIntoGroup(double hungerDecreasePerAnimal, Carnivore supportingCarnivore) {
-        double calculatedHunger = supportingCarnivore.getCurrentHunger() - hungerDecreasePerAnimal;
-        supportingCarnivore.setCurrentHunger(roundToOneDecimal(calculatedHunger));
-    }
-
-    /**
-     * Round applied double value to one symbol after point
-     *
-     * @param value applied double
-     * @return returns rounded double
-     */
-    private double roundToOneDecimal(double value) {
-        return Math.round(value * 10.0) / 10.0;
-    }
-
-    /**
      * Decreases hunger for a solitary predator after a successful attack.
      *
      * @param predator the attacking carnivore
@@ -209,6 +146,61 @@ public class Ecosystem {
     }
 
     /**
+     * Decreases hunger for all members of the predator's group after a successful attack.
+     * The main predator gets a larger share of the hunger decrease.
+     *
+     * @param predator the attacking carnivore
+     * @param victim   the herbivore that was attacked
+     */
+    private void decreaseGroupHunger(Carnivore predator, Herbivore victim) {
+        List<Animal> predatorGroup = ecosystemGroupedAnimals.get(predator.getAnimalType()).get(predator.getGroupName());
+        double hungerDecreasePerAnimal = calculateHungerDecreaseAmount(predator, victim) / ((double) predatorGroup.size() + 1);
+        predatorGroup.forEach(groupMember -> feedGroupMember(predator, (Carnivore) groupMember, hungerDecreasePerAnimal));
+    }
+
+    /**
+     * Feeds a specific member of the predator's group, either the main attacker or a supporting carnivore.
+     *
+     * @param predator the main attacking carnivore
+     * @param groupMember a member of the predator's group to feed
+     * @param hungerDecreasePerAnimal the base amount of hunger decrease per group member
+     */
+    private void feedGroupMember(Carnivore predator, Carnivore groupMember, double hungerDecreasePerAnimal) {
+        if (groupMember.getId() == predator.getId()) {
+            feedAttackerWithinGroup(hungerDecreasePerAnimal, predator);
+        } else {
+            if (!isUpdatedHungerGreaterThanInitial(hungerDecreasePerAnimal, groupMember.getCurrentHunger(), groupMember)) {
+                feedSupportersWithinGroup(hungerDecreasePerAnimal, groupMember);
+            }
+        }
+    }
+
+    /**
+     * Feeds the main attacker in a group attack, decreasing its hunger by twice the base amount.
+     *
+     * @param hungerDecreasePerAnimal the base amount of hunger decrease per group member
+     * @param attacker the main attacking carnivore
+     */
+    private void feedAttackerWithinGroup(double hungerDecreasePerAnimal, Carnivore attacker) {
+        if (isUpdatedHungerGreaterThanInitial(hungerDecreasePerAnimal, attacker.getCurrentHunger(), attacker)) {
+            return;
+        }
+        double calculatedHunger = attacker.getCurrentHunger() - (hungerDecreasePerAnimal * 2);
+        attacker.setCurrentHunger(roundToOneDecimal(calculatedHunger));
+    }
+
+    /**
+     * Feeds a supporting carnivore in the group, decreasing its hunger by the base amount.
+     *
+     * @param hungerDecreasePerAnimal the base amount of hunger decrease
+     * @param supportingCarnivore a supporting carnivore in the group
+     */
+    private void feedSupportersWithinGroup(double hungerDecreasePerAnimal, Carnivore supportingCarnivore) {
+        double calculatedHunger = supportingCarnivore.getCurrentHunger() - hungerDecreasePerAnimal;
+        supportingCarnivore.setCurrentHunger(roundToOneDecimal(calculatedHunger));
+    }
+
+    /**
      * Removes a dead animal from its group and removes the group if it becomes extinct.
      *
      * @param target the dead animal to remove
@@ -229,6 +221,16 @@ public class Ecosystem {
      */
     private void removeExtinctGroup(Animal target) {
         ecosystemGroupedAnimals.get(target.getAnimalType()).remove(target.getGroupName());
+    }
+
+    /**
+     * Round applied double value to one symbol after point
+     *
+     * @param value applied double
+     * @return returns rounded double
+     */
+    private double roundToOneDecimal(double value) {
+        return Math.round(value * 10.0) / 10.0;
     }
 
     /**
