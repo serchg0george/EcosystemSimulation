@@ -30,28 +30,15 @@ class EcosystemTest {
     private final Carnivore cheetah = new Carnivore(biomes, 10, true, 30, 60, 5, LAND, CARNIVORE, ALONE, "CHEETAH", false, 110, LONERS_GROUP, 15);
     private final Carnivore hyenaOne = new Carnivore(biomes, 10, true, 24, 50, 5, LAND, CARNIVORE, GROUP, "HYENA", true, 80, HYENA_GROUP_NAME, 14);
     private final Carnivore hyenaTwo = new Carnivore(biomes, 10, true, 24, 50, 5, LAND, CARNIVORE, GROUP, "HYENA", true, 80, HYENA_GROUP_NAME, 14);
-    private List<Herbivore> zebras;
-    private List<Herbivore> gazelles;
-    private List<Carnivore> hyenas;
-    private List<Carnivore> cheetahs;
     private Map<String, List<Animal>> groupedHerbivores;
     private Map<String, List<Animal>> groupedCarnivores;
     private Ecosystem ecosystem;
 
     @BeforeEach
     void setUp() {
-        zebras = new ArrayList<>();
-        gazelles = new ArrayList<>();
-        hyenas = new ArrayList<>();
-        cheetahs = new ArrayList<>();
         groupedHerbivores = new HashMap<>();
         groupedCarnivores = new HashMap<>();
         Map<AnimalType, Map<String, List<Animal>>> ecosystemAnimals = new EnumMap<>(AnimalType.class);
-        zebras.add(zebra);
-        gazelles.add(gazelle);
-        hyenas.add(hyenaOne);
-        hyenas.add(hyenaTwo);
-        cheetahs.add(cheetah);
         groupedHerbivores.put(LONERS_GROUP, new ArrayList<>());
         groupedHerbivores.put(ZEBRA_GROUP_NAME, new ArrayList<>());
         groupedHerbivores.put(GAZELLE_GROUP_NAME, new ArrayList<>());
