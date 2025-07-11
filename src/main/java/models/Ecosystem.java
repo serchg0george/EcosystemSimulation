@@ -3,13 +3,9 @@ package models;
 import enums.AnimalType;
 import enums.Biome;
 import exceptions.AnimalNotFoundException;
-import exceptions.IllegalAttackArgumentException;
 import services.ProbabilitiesService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Ecosystem {
     private final Biome biome;
@@ -31,13 +27,11 @@ public class Ecosystem {
      * @param victimId   herbivore id which under attack
      */
     public void attack(long predatorId, long victimId) {
-        //TODO in ecosystem while removing animal from ecosystem need to check if
-        // this animal last in its group and remove group in case it is
-        Animal predator = findAnimalById(predatorId, ecosystemGroupedAnimals);
-        Animal victim = findAnimalById(victimId, ecosystemGroupedAnimals);
-        isAttackValid(predator, victim);
+        Carnivore predator = (Carnivore) findAnimalById(predatorId, ecosystemGroupedAnimals);
+        Herbivore victim = (Herbivore) findAnimalById(victimId, ecosystemGroupedAnimals);
         if (isAttackSucceed(predator, victim)) {
             decreaseHunger(predator, victim);
+            System.out.println(victim.getAnimalKind() + " WAS KILLED!");
             removeDeadAnimal(victim);
         }
     }
@@ -56,16 +50,37 @@ public class Ecosystem {
         groupMembers.add(animal);
     }
 
-    /**
-     * Checks is there at least one animal in the ecosystem
-     *
-     * @param ecosystem current ecosystem
-     * @return returns true if at least one animal in given ecosystem alive
-     */
-    public boolean isContainAnimals(Ecosystem ecosystem) {
-        return ecosystem.ecosystemGroupedAnimals.values().stream()
-                .flatMap(groups -> groups.values().stream())
-                .anyMatch(animals -> !animals.isEmpty());
+    public boolean hasExtinctAnimalType() {
+        for (AnimalType type : AnimalType.values()) {
+            Map<String, List<Animal>> groups = ecosystemGroupedAnimals.get(type);
+            if (groups == null || groups.isEmpty()) continue;
+
+            boolean anyAlive = groups.values().stream()
+                    .filter(Objects::nonNull)
+                    .flatMap(List::stream)
+                    .filter(Objects::nonNull)
+                    .anyMatch(Animal::isAlive);
+
+            if (!anyAlive) {
+                System.out.println("All animals of type " + type + " are dead.");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void increaseHungerOfCarnivore(Map<String, List<Animal>> groups) {
+        groups.forEach((groupName, animals) -> {
+            Iterator<Animal> iterator = animals.iterator();
+            while (iterator.hasNext()) {
+                Carnivore carnivore = (Carnivore) iterator.next();
+                if (carnivore.hasDiedFromHunger()) {
+                    iterator.remove();
+                } else {
+                    carnivore.increaseHunger();
+                }
+            }
+        });
     }
 
     /**
@@ -75,7 +90,7 @@ public class Ecosystem {
      * @param predator the attacking carnivore
      * @param victim   the herbivore that was attacked
      */
-    private void decreaseHunger(Animal predator, Animal victim) {
+    private void decreaseHunger(Carnivore predator, Herbivore victim) {
         if (!predator.isInGroup()) {
             decreaseLonerHunger(predator, victim);
         }
@@ -89,23 +104,31 @@ public class Ecosystem {
      * @param predator the attacking carnivore
      * @param victim   the herbivore that was attacked
      */
-    private void decreaseGroupHunger(Animal predator, Animal victim) {
-        // TODO try to clear up things here, definitely need refactor
+    private void decreaseGroupHunger(Carnivore predator, Herbivore victim) {
         List<Animal> predatorGroup = ecosystemGroupedAnimals.get(predator.getAnimalType()).get(predator.getGroupName());
-        Carnivore attacker = (Carnivore) predator;
         double hungerDecreasePerAnimal = calculateHungerDecreaseAmount(predator, victim) / ((double) predatorGroup.size() + 1);
-        predatorGroup.forEach(groupMember -> {
-            if (groupMember.getId() == predator.getId()) {
-                if (isUpdatedHungerGreaterThanInitial(hungerDecreasePerAnimal, attacker.getCurrentHunger(), attacker)) {
-                    return;
-                }
-                double calculatedHunger = attacker.getCurrentHunger() - (hungerDecreasePerAnimal * 2);
-                attacker.setCurrentHunger(roundToOneDecimal(calculatedHunger));
-            } else if (groupMember instanceof Carnivore supportingCarnivore && !isUpdatedHungerGreaterThanInitial(hungerDecreasePerAnimal, supportingCarnivore.getCurrentHunger(), supportingCarnivore)) {
-                double calculatedHunger = supportingCarnivore.getCurrentHunger() - hungerDecreasePerAnimal;
-                supportingCarnivore.setCurrentHunger(roundToOneDecimal(calculatedHunger));
-            }
-        });
+        predatorGroup.forEach(groupMember -> feedGroupMember(predator, groupMember, hungerDecreasePerAnimal));
+    }
+
+    private void feedGroupMember(Carnivore predator, Animal groupMember, double hungerDecreasePerAnimal) {
+        if (groupMember.getId() == predator.getId()) {
+            feedAttackerIntoGroup(hungerDecreasePerAnimal, predator);
+        } else if (groupMember instanceof Carnivore supportingCarnivore && !isUpdatedHungerGreaterThanInitial(hungerDecreasePerAnimal, supportingCarnivore.getCurrentHunger(), supportingCarnivore)) {
+            feedSupportersIntoGroup(hungerDecreasePerAnimal, supportingCarnivore);
+        }
+    }
+
+    private void feedAttackerIntoGroup(double hungerDecreasePerAnimal, Carnivore attacker) {
+        if (isUpdatedHungerGreaterThanInitial(hungerDecreasePerAnimal, attacker.getCurrentHunger(), attacker)) {
+            return;
+        }
+        double calculatedHunger = attacker.getCurrentHunger() - (hungerDecreasePerAnimal * 2);
+        attacker.setCurrentHunger(roundToOneDecimal(calculatedHunger));
+    }
+
+    private void feedSupportersIntoGroup(double hungerDecreasePerAnimal, Carnivore supportingCarnivore) {
+        double calculatedHunger = supportingCarnivore.getCurrentHunger() - hungerDecreasePerAnimal;
+        supportingCarnivore.setCurrentHunger(roundToOneDecimal(calculatedHunger));
     }
 
     /**
@@ -124,26 +147,32 @@ public class Ecosystem {
      * @param predator the attacking carnivore
      * @param victim   the herbivore that was attacked
      */
-    private void decreaseLonerHunger(Animal predator, Animal victim) {
-        Carnivore carnivore = (Carnivore) predator;
-        if (!carnivore.hasDiedFromHunger()) {
-            feedLoner(predator, victim, carnivore);
+    private void decreaseLonerHunger(Carnivore predator, Herbivore victim) {
+        if (!predator.hasDiedFromHunger()) {
+            feedLoner(predator, victim);
         } else {
             removeDeadAnimal(predator);
         }
     }
 
-    private void feedLoner(Animal predator, Animal victim, Carnivore carnivore) {
-        double initHunger = carnivore.getCurrentHunger();
+    private void feedLoner(Carnivore predator, Herbivore victim) {
+        double initHunger = predator.getCurrentHunger();
         double updatedHunger = calculateHungerDecreaseAmount(predator, victim);
-        if (isUpdatedHungerGreaterThanInitial(updatedHunger, initHunger, carnivore)) return;
-        carnivore.setCurrentHunger(updatedHunger);
+        if (isUpdatedHungerGreaterThanInitial(updatedHunger, initHunger, predator)) return;
+        predator.setCurrentHunger(updatedHunger);
     }
 
-    private void removeDeadAnimal(Animal predator) {
-        ecosystemGroupedAnimals.get(predator.getAnimalType())
-                .get(predator.getGroupName())
-                .removeIf(animal -> animal.getId() == predator.getId());
+    private void removeDeadAnimal(Animal target) {
+        ecosystemGroupedAnimals.get(target.getAnimalType())
+                .get(target.getGroupName())
+                .removeIf(animal -> animal.getId() == target.getId());
+        if (ecosystemGroupedAnimals.get(target.getAnimalType()).get(target.getGroupName()).isEmpty()) {
+            removeExtinctGroup(target);
+        }
+    }
+
+    private void removeExtinctGroup(Animal target) {
+        ecosystemGroupedAnimals.get(target.getAnimalType()).remove(target.getGroupName());
     }
 
     /**
@@ -170,20 +199,8 @@ public class Ecosystem {
      * @param victim   the herbivore that was attacked
      * @return the calculated hunger decrease amount
      */
-    private double calculateHungerDecreaseAmount(Animal predator, Animal victim) {
+    private double calculateHungerDecreaseAmount(Carnivore predator, Herbivore victim) {
         return (((double) victim.getWeight() / (double) predator.getWeight()) * 100);
-    }
-
-    /**
-     * Validates if an attack is possible between the given animals.
-     *
-     * @param predator the attacking animal
-     * @param victim   the animal being attacked
-     * @throws IllegalAttackArgumentException if attack conditions are invalid
-     */
-    private void isAttackValid(Animal predator, Animal victim) {
-        if (!isCarnivore(predator)) throw new IllegalAttackArgumentException("Attacker must be a carnivore!");
-        if (isCarnivore(victim)) throw new IllegalAttackArgumentException("Target must be a herbivore!");
     }
 
     /**
@@ -195,7 +212,7 @@ public class Ecosystem {
      * @param victim   apply herbivore kind as a victim
      * @return returns true in case of success, otherwise false
      */
-    private boolean isAttackSucceed(Animal predator, Animal victim) {
+    private boolean isAttackSucceed(Carnivore predator, Herbivore victim) {
         int attackPoints = calculateScaledPoints(predator);
         int escapePoints = calculateScaledPoints(victim);
 
@@ -221,7 +238,7 @@ public class Ecosystem {
      * @param victim        apply victim
      * @return returns reduced the chance of successful attack
      */
-    private int calculateReducedSucceedAttackChance(int succeedChance, Animal predator, Animal victim) {
+    private int calculateReducedSucceedAttackChance(int succeedChance, Carnivore predator, Herbivore victim) {
         double reducedOn = (double) victim.getWeight() / (double) predator.getWeight();
         return (int) (succeedChance / reducedOn) * 100;
     }
@@ -265,23 +282,13 @@ public class Ecosystem {
     }
 
     /**
-     * Checks if an animal is a carnivore.
-     *
-     * @param animal the animal to check
-     * @return true if the animal is a carnivore, false otherwise
-     */
-    private boolean isCarnivore(Animal animal) {
-        return animal.getAnimalType().toString().equalsIgnoreCase("carnivore");
-    }
-
-    /**
      * Checks if the predator is heavier than the victim.
      *
      * @param predator the attacking animal
      * @param victim   the animal being attacked
      * @return true if a predator is heavier, false otherwise
      */
-    private boolean isPredatorHavier(Animal predator, Animal victim) {
+    private boolean isPredatorHavier(Carnivore predator, Herbivore victim) {
         return predator.getWeight() > victim.getWeight();
     }
 
@@ -292,5 +299,4 @@ public class Ecosystem {
     public Map<AnimalType, Map<String, List<Animal>>> getEcosystemGroupedAnimals() {
         return ecosystemGroupedAnimals;
     }
-
 }
