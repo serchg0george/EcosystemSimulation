@@ -38,13 +38,7 @@ public class SimulationRunner {
      * processes animal population setup, and executes the simulation loop until extinction occurs.
      */
     public void startSimulation() {
-        final Ecosystem savanna = new Ecosystem(SAVANNA, ecosystemGroupedAnimals, probabilitiesService, feedingService);
-        final Ecosystem tundra = new Ecosystem(TUNDRA, ecosystemGroupedAnimals, probabilitiesService, feedingService);
-        final Ecosystem desert = new Ecosystem(DESERT, ecosystemGroupedAnimals, probabilitiesService, feedingService);
-        final List<Ecosystem> ecosystems = new ArrayList<>();
-        ecosystems.add(savanna);
-        ecosystems.add(tundra);
-        ecosystems.add(desert);
+        final List<Ecosystem> ecosystems = getEcosystems();
         try (Scanner input = new Scanner(System.in)) {
             Ecosystem chosenEcosystem = selectOrCreateEcosystem(ecosystems, input);
             int iterationNumber = 1;
@@ -53,6 +47,23 @@ public class SimulationRunner {
                 runSimulationLoop(chosenEcosystem, iterationNumber);
             }
         }
+    }
+
+    /**
+     * Initializes and returns a predefined list of ecosystems (Savanna, Tundra, Desert)
+     * each associated with the shared animal map and required services.
+     *
+     * @return list of predefined ecosystems
+     */
+    private List<Ecosystem> getEcosystems() {
+        final Ecosystem savanna = new Ecosystem(SAVANNA, ecosystemGroupedAnimals, probabilitiesService, feedingService);
+        final Ecosystem tundra = new Ecosystem(TUNDRA, ecosystemGroupedAnimals, probabilitiesService, feedingService);
+        final Ecosystem desert = new Ecosystem(DESERT, ecosystemGroupedAnimals, probabilitiesService, feedingService);
+        final List<Ecosystem> ecosystems = new ArrayList<>();
+        ecosystems.add(savanna);
+        ecosystems.add(tundra);
+        ecosystems.add(desert);
+        return ecosystems;
     }
 
     /**
@@ -250,10 +261,18 @@ public class SimulationRunner {
     }
 
     /**
-     * Executes one lifecycle phase: Increases carnivore hunger, checks for extinction events,
-     * and triggers a random attack between carnivores and herbivores.
+     * Executes one lifecycle phase of the ecosystem simulation.
+     * <p>
+     * This phase includes:
+     * <ul>
+     *     <li>Increasing the hunger level of all carnivores</li>
+     *     <li>Checking for extinction of carnivores and herbivores</li>
+     *     <li>Performing attacks: each alive carnivore attacks a randomly selected alive herbivore</li>
+     * </ul>
+     * The method ensures that each carnivore, if alive, attempts an attack.
+     * If no herbivores remain, attacks are skipped for the rest of the carnivores.
      *
-     * @param ecosystem Ecosystem to process
+     * @param ecosystem the ecosystem being processed for this simulation iteration
      */
     private void executeLifecyclePhase(Ecosystem ecosystem) {
         ecosystem.increaseHungerOfCarnivore(ecosystem.getEcosystemGroupedAnimals().get(CARNIVORE));
@@ -263,10 +282,29 @@ public class SimulationRunner {
         checkExtinction(carnivoreLists, CARNIVORE);
         checkExtinction(herbivoreLists, HERBIVORE);
 
-        long attackerId = selectRandomAnimal(carnivoreLists).getId();
-        long victimId = selectRandomAnimal(herbivoreLists).getId();
-        ecosystem.attack(attackerId, victimId);
+        for (List<Animal> carnivoreGroup : carnivoreLists) {
+            for (Animal carnivore : carnivoreGroup) {
+                List<Animal> currentAliveVictims = getCurrentAliveVictims(herbivoreLists);
+                if (currentAliveVictims.isEmpty()) return;
+                Animal victim = currentAliveVictims.get(random.nextInt(currentAliveVictims.size()));
+                ecosystem.attack(carnivore.getId(), victim.getId());
+            }
+        }
     }
+
+    /**
+     * Filters and collects all currently alive herbivores from the provided animal groups.
+     *
+     * @param herbivoreLists collection of herbivore group lists
+     * @return list of alive herbivore animals
+     */
+    private List<Animal> getCurrentAliveVictims(Collection<List<Animal>> herbivoreLists) {
+        return herbivoreLists.stream()
+                .flatMap(List::stream)
+                .filter(Animal::isAlive)
+                .toList();
+    }
+
 
     /**
      * Breeds animals when their age matches their reproductive rate.
