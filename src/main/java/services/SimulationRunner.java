@@ -109,13 +109,7 @@ public class SimulationRunner {
      * @param animalType  Animal type (CARNIVORE/HERBIVORE) to evaluate
      */
     protected void checkExtinction(Collection<List<Animal>> animalLists, AnimalType animalType) {
-        List<Animal> aliveAnimals = animalLists.stream()
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .filter(Objects::nonNull)
-                .filter(Animal::isAlive)
-                .toList();
-
+        List<Animal> aliveAnimals = getCurrentAliveAnimals(animalLists);
         if (aliveAnimals.isEmpty()) {
             System.out.println(animalType.toString() + " are extinct. Ending simulation.");
             System.exit(0);
@@ -129,9 +123,8 @@ public class SimulationRunner {
      * @param ecosystem Ecosystem containing animals to breed
      */
     protected void processBreeding(Ecosystem ecosystem) {
-        Collection<List<Animal>> carnivores = getCarnivoreGroups(ecosystem);
-        Collection<List<Animal>> herbivores = getHerbivoreGroups(ecosystem);
-
+        Collection<List<Animal>> carnivores = getAnimalGroupsByType(ecosystem, CARNIVORE);
+        Collection<List<Animal>> herbivores = getAnimalGroupsByType(ecosystem, HERBIVORE);
         breedAllAnimals(carnivores);
         breedAllAnimals(herbivores);
     }
@@ -142,16 +135,10 @@ public class SimulationRunner {
      * @param ecosystem Ecosystem containing animals to age
      */
     protected void ageAllAnimals(Ecosystem ecosystem) {
-        Collection<List<Animal>> carnivores = getCarnivoreGroups(ecosystem);
-        Collection<List<Animal>> herbivores = getHerbivoreGroups(ecosystem);
-
-        carnivores.forEach(animals ->
-                animals.forEach(animal ->
-                        animal.growUp(animal.getCurrentAge())));
-
-        herbivores.forEach(animals ->
-                animals.forEach(animal ->
-                        animal.growUp(animal.getCurrentAge())));
+        Collection<List<Animal>> carnivores = getAnimalGroupsByType(ecosystem, CARNIVORE);
+        Collection<List<Animal>> herbivores = getAnimalGroupsByType(ecosystem, HERBIVORE);
+        carnivores.forEach(animals -> animals.forEach(animal -> animal.growUp(animal.getCurrentAge())));
+        herbivores.forEach(animals -> animals.forEach(animal -> animal.growUp(animal.getCurrentAge())));
     }
 
     /**
@@ -178,34 +165,8 @@ public class SimulationRunner {
      * @return Randomly selected living Animal instance
      */
     protected Animal selectRandomAnimal(Collection<List<Animal>> animalGroups) {
-        List<Animal> animals = animalGroups.stream()
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .filter(Objects::nonNull)
-                .filter(Animal::isAlive)
-                .toList();
-
+        List<Animal> animals = getCurrentAliveAnimals(animalGroups);
         return animals.get(random.nextInt(animals.size()));
-    }
-
-    /**
-     * Retrieves all herbivore groups from the ecosystem.
-     *
-     * @param ecosystem Ecosystem to query
-     * @return Collection of herbivore group lists
-     */
-    protected Collection<List<Animal>> getHerbivoreGroups(Ecosystem ecosystem) {
-        return ecosystem.getEcosystemGroupedAnimals().get(HERBIVORE).values();
-    }
-
-    /**
-     * Retrieves all carnivore groups from the ecosystem.
-     *
-     * @param ecosystem Ecosystem to query
-     * @return Collection of carnivore group lists
-     */
-    protected Collection<List<Animal>> getCarnivoreGroups(Ecosystem ecosystem) {
-        return ecosystem.getEcosystemGroupedAnimals().get(CARNIVORE).values();
     }
 
     /**
@@ -276,15 +237,15 @@ public class SimulationRunner {
      */
     private void executeLifecyclePhase(Ecosystem ecosystem) {
         ecosystem.increaseHungerOfCarnivore(ecosystem.getEcosystemGroupedAnimals().get(CARNIVORE));
-        Collection<List<Animal>> carnivoreLists = getCarnivoreGroups(ecosystem);
-        Collection<List<Animal>> herbivoreLists = getHerbivoreGroups(ecosystem);
+        Collection<List<Animal>> carnivoreLists = getAnimalGroupsByType(ecosystem, CARNIVORE);
+        Collection<List<Animal>> herbivoreLists = getAnimalGroupsByType(ecosystem, HERBIVORE);
 
         checkExtinction(carnivoreLists, CARNIVORE);
         checkExtinction(herbivoreLists, HERBIVORE);
 
         for (List<Animal> carnivoreGroup : carnivoreLists) {
             for (Animal carnivore : carnivoreGroup) {
-                List<Animal> currentAliveVictims = getCurrentAliveVictims(herbivoreLists);
+                List<Animal> currentAliveVictims = getCurrentAliveAnimals(herbivoreLists);
                 if (currentAliveVictims.isEmpty()) return;
                 Animal victim = currentAliveVictims.get(random.nextInt(currentAliveVictims.size()));
                 ecosystem.attack(carnivore.getId(), victim.getId());
@@ -293,18 +254,26 @@ public class SimulationRunner {
     }
 
     /**
-     * Filters and collects all currently alive herbivores from the provided animal groups.
+     * Retrieves all animal groups of a specific type (e.g., herbivores or carnivores)
+     * from the given ecosystem.
      *
-     * @param herbivoreLists collection of herbivore group lists
-     * @return list of alive herbivore animals
+     * @param ecosystem the ecosystem containing the animal group data
+     * @param type the {@link AnimalType} (e.g., CARNIVORE or HERBIVORE) whose groups are to be retrieved
+     * @return a collection of animal group lists for the specified type
      */
-    private List<Animal> getCurrentAliveVictims(Collection<List<Animal>> herbivoreLists) {
-        return herbivoreLists.stream()
-                .flatMap(List::stream)
-                .filter(Animal::isAlive)
-                .toList();
+    protected Collection<List<Animal>> getAnimalGroupsByType(Ecosystem ecosystem, AnimalType type) {
+        return ecosystem.getEcosystemGroupedAnimals().get(type).values();
     }
 
+    /**
+     * Filters and collects all currently alive animals from the provided animal groups.
+     *
+     * @param animalsList collection of herbivore group lists
+     * @return list of alive animals
+     */
+    private List<Animal> getCurrentAliveAnimals(Collection<List<Animal>> animalsList) {
+        return animalsList.stream().flatMap(List::stream).filter(Animal::isAlive).toList();
+    }
 
     /**
      * Breeds animals when their age matches their reproductive rate.
@@ -313,12 +282,11 @@ public class SimulationRunner {
      * @param carnivores Collection of animal lists to process
      */
     private void breedAllAnimals(Collection<List<Animal>> carnivores) {
-        carnivores.forEach(animals ->
-                animals.forEach(animal -> {
-                    if (animal.getCurrentAge() > 0 && animal.getCurrentAge() % animal.getReproductiveRate() == 0) {
-                        animal.breed(animal);
-                    }
-                }));
+        carnivores.forEach(animals -> animals.forEach(animal -> {
+            if (animal.getCurrentAge() > 0 && animal.getCurrentAge() % animal.getReproductiveRate() == 0) {
+                animal.breed(animal);
+            }
+        }));
     }
 
     /**
