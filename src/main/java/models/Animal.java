@@ -68,9 +68,10 @@ public abstract class Animal {
     public abstract Animal breed(Animal animal);
 
     /**
-     * Advances the animal's age by one unit
+     * Increases the animal's age by one unit
      */
     public void growUp(int currentAge) {
+        System.out.println("Growing up " + getAnimalKind() + " animal!");
         this.currentAge = ++currentAge;
     }
 

@@ -6,6 +6,7 @@ import static enums.Biome.SAVANNA;
 import static enums.Habitat.LAND;
 import static enums.LivingType.ALONE;
 import static enums.LivingType.GROUP;
+import enums.Biome;
 import models.Animal;
 import models.Carnivore;
 import models.Ecosystem;
@@ -42,7 +43,7 @@ public class AnimalFactory {
         registerAnimal("buffalo", group -> new Herbivore(Set.of(SAVANNA), 0, true, 35, 800, 9, LAND, HERBIVORE, "Buffalo", GROUP, true, 40, group));
 
         //Carnivores
-        registerAnimal("lion", group -> new Carnivore(Set.of(SAVANNA), 0, true, 30, 150, 6, LAND, CARNIVORE, ALONE, "Lion", false, 110, group, 20));
+        registerAnimal("lion", group -> new Carnivore(Set.of(SAVANNA), 0, true, 30, 150, 6, LAND, CARNIVORE, ALONE, "Lion", true, 110, group, 20));
         registerAnimal("cheetah", group -> new Carnivore(Set.of(SAVANNA), 0, true, 30, 60, 5, LAND, CARNIVORE, ALONE, "Cheetah", false, 110, LONERS_GROUP, 15));
         registerAnimal("tiger", group -> new Carnivore(Set.of(SAVANNA), 0, true, 20, 200, 6, LAND, CARNIVORE, ALONE, "Tiger", false, 75, LONERS_GROUP, 18));
         registerAnimal("hyena", group -> new Carnivore(Set.of(SAVANNA), 0, true, 24, 50, 5, LAND, CARNIVORE, GROUP, "Hyena", true, 80, group, 14));
@@ -62,6 +63,22 @@ public class AnimalFactory {
         for (int i = 0; i < count; i++) {
             ecosystem.addAnimalToEcosystem(animalFunction.apply(groupName));
         }
+    }
+
+    /**
+     * Prints all registered animals that can live in the given biome.
+     *
+     * @param currentBiome the biome to filter animals by (e.g., SAVANNA, TUNDRA)
+     */
+    public void printAllowedAnimals(Biome currentBiome) {
+        System.out.println("Which animal to create? Pick from the list below: ");
+
+        animals.forEach((animalKind, animalFunction) -> {
+            Animal sampleAnimal = animalFunction.apply("");
+            if (sampleAnimal.getBiomes().contains(currentBiome)) {
+                System.out.println(animalKind);
+            }
+        });
     }
 
     /**

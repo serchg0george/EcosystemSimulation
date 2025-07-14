@@ -47,6 +47,7 @@ public class Carnivore extends Animal {
     @Override
     public Animal breed(Animal animal) {
         final int initialAge = 0;
+        System.out.println("New carnivore " + animal.getAnimalKind() + " was born!");
         return new Carnivore(
                 animal.getBiomes(),
                 initialAge,
@@ -72,6 +73,7 @@ public class Carnivore extends Animal {
      */
     protected boolean hasDiedFromHunger() {
         if (currentHunger >= 100) {
+            System.out.println("Carnivore died " + getAnimalKind() + " from hunger!");
             setAlive(false);
             return true;
         }
@@ -82,6 +84,7 @@ public class Carnivore extends Animal {
      * Increases current hunger level by this carnivore's predefined hunger rate.
      */
     public void increaseHunger() {
+        System.out.println("Hunger of " + getAnimalKind() + " increased!");
         currentHunger += hungerRate;
     }
 

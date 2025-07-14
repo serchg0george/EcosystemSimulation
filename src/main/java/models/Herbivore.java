@@ -40,6 +40,7 @@ public class Herbivore extends Animal {
     @Override
     public Animal breed(Animal animal) {
         final int initialAge = 0;
+        System.out.println("New herbivore " + animal.getAnimalKind() + " was born!");
         return new Herbivore(
                 animal.getBiomes(),
                 initialAge,
