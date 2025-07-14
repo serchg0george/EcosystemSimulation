@@ -62,7 +62,7 @@ public class SimulationRunner {
     protected void promptForAnimalCreation(Scanner input, Ecosystem chosenEcosystem) {
         boolean isContinueCreation = true;
         while (isContinueCreation) {
-            System.out.println("Will you want to create another animal/-s? Y/N");
+            System.out.println("Will you want to add another animal/-s? Y/N");
             if (input.nextLine().equalsIgnoreCase("n")) {
                 isContinueCreation = false;
             } else {
@@ -80,31 +80,12 @@ public class SimulationRunner {
      */
     protected void runSimulationLoop(Ecosystem chosenEcosystem, int iterationNumber) {
         while (!chosenEcosystem.hasExtinctAnimalType()) {
-            System.out.println("number " + iterationNumber);
+            System.out.println("Iteration number " + iterationNumber);
             ageAllAnimals(chosenEcosystem);
-            processBreeding(chosenEcosystem, iterationNumber);
+            processBreeding(chosenEcosystem);
             executeLifecyclePhase(chosenEcosystem);
             iterationNumber++;
         }
-    }
-
-    /**
-     * Executes one lifecycle phase: Increases carnivore hunger, checks for extinction events,
-     * and triggers a random attack between carnivores and herbivores.
-     *
-     * @param ecosystem Ecosystem to process
-     */
-    protected void executeLifecyclePhase(Ecosystem ecosystem) {
-        ecosystem.increaseHungerOfCarnivore(ecosystem.getEcosystemGroupedAnimals().get(CARNIVORE));
-        Collection<List<Animal>> carnivoreLists = getCarnivoreGroups(ecosystem);
-        Collection<List<Animal>> herbivoreLists = getHerbivoreGroups(ecosystem);
-
-        checkExtinction(carnivoreLists, CARNIVORE);
-        checkExtinction(herbivoreLists, HERBIVORE);
-
-        long attackerId = selectRandomAnimal(carnivoreLists).getId();
-        long victimId = selectRandomAnimal(herbivoreLists).getId();
-        ecosystem.attack(attackerId, victimId);
     }
 
     /**
@@ -133,25 +114,13 @@ public class SimulationRunner {
      * by the current iteration number.
      *
      * @param ecosystem       Ecosystem containing animals to breed
-     * @param iterationNumber Current simulation iteration (used for breeding condition)
      */
-    protected void processBreeding(Ecosystem ecosystem, int iterationNumber) {
+    protected void processBreeding(Ecosystem ecosystem) {
         Collection<List<Animal>> carnivores = getCarnivoreGroups(ecosystem);
         Collection<List<Animal>> herbivores = getHerbivoreGroups(ecosystem);
 
-        carnivores.forEach(animals ->
-                animals.forEach(animal -> {
-                    if (animal.getCurrentAge() % iterationNumber == 0) {
-                        animal.breed(animal);
-                    }
-                }));
-
-        herbivores.forEach(animals ->
-                animals.forEach(animal -> {
-                    if (animal.getCurrentAge() % iterationNumber == 0) {
-                        animal.breed(animal);
-                    }
-                }));
+        breedAllAnimals(carnivores);
+        breedAllAnimals(herbivores);
     }
 
     /**
@@ -173,35 +142,6 @@ public class SimulationRunner {
     }
 
     /**
-     * Initiates the process of adding animals to a chosen ecosystem.
-     * Displays a list of allowed animals and prompts the user to select one or more for creation.
-     *
-     * @param chosenEcosystem the ecosystem to which animals will be added
-     */
-    protected void addAnimalsToEcosystem(Ecosystem chosenEcosystem, Scanner input) {
-        final List<String> allowedAnimals = List.of("Zebra", "Hare", "Gazelle", "Buffalo",
-                "Lion", "Cheetah", "Tiger", "Hyena");
-        System.out.println("Which animal to create? Pick from the list below: ");
-        allowedAnimals.forEach(System.out::println);
-        handleAnimalCreation(input, chosenEcosystem);
-    }
-
-    /**
-     * Handles the user input loop for creating animals within a chosen ecosystem.
-     * Prompts the user to repeatedly create animals until they choose to stop.
-     *
-     * @param input           the Scanner used for reading user input
-     * @param chosenEcosystem the ecosystem to which animals will be added
-     */
-    protected void handleAnimalCreation(Scanner input, Ecosystem chosenEcosystem) {
-        System.out.println("Print animal kind: ");
-        String kind = input.nextLine();
-        System.out.println("Print animal group: ");
-        String group = input.nextLine();
-        createMultipleAnimals(input, kind, group, chosenEcosystem);
-    }
-
-    /**
      * Prompts the user for the number of animals to create and attempts to create them
      * using a corresponding factory. Successfully created animals are added to the ecosystem.
      *
@@ -214,15 +154,7 @@ public class SimulationRunner {
         boolean isInvalidInteger = true;
         while (isInvalidInteger) {
             System.out.println("Needed amount (integer): ");
-            if (input.hasNextInt()) {
-                int amount = input.nextInt();
-                input.nextLine();
-                animalFactory.createAnimals(chosenEcosystem, kind, group, amount);
-                isInvalidInteger = false;
-            } else {
-                System.out.println("Invalid input! Please enter a valid integer.");
-                input.nextLine();
-            }
+            isInvalidInteger = handleAnimalCreationInput(input, kind, group, chosenEcosystem);
         }
     }
 
@@ -316,6 +248,66 @@ public class SimulationRunner {
     }
 
     /**
+     * Executes one lifecycle phase: Increases carnivore hunger, checks for extinction events,
+     * and triggers a random attack between carnivores and herbivores.
+     *
+     * @param ecosystem Ecosystem to process
+     */
+    private void executeLifecyclePhase(Ecosystem ecosystem) {
+        ecosystem.increaseHungerOfCarnivore(ecosystem.getEcosystemGroupedAnimals().get(CARNIVORE));
+        Collection<List<Animal>> carnivoreLists = getCarnivoreGroups(ecosystem);
+        Collection<List<Animal>> herbivoreLists = getHerbivoreGroups(ecosystem);
+
+        checkExtinction(carnivoreLists, CARNIVORE);
+        checkExtinction(herbivoreLists, HERBIVORE);
+
+        long attackerId = selectRandomAnimal(carnivoreLists).getId();
+        long victimId = selectRandomAnimal(herbivoreLists).getId();
+        ecosystem.attack(attackerId, victimId);
+    }
+
+    /**
+     * Breeds animals when their age matches their reproductive rate.
+     * Each animal breeds with itself if its age > 0 and divisible by its reproductive rate.
+     *
+     * @param carnivores Collection of animal lists to process
+     */
+    private void breedAllAnimals(Collection<List<Animal>> carnivores) {
+        carnivores.forEach(animals ->
+                animals.forEach(animal -> {
+                    if (animal.getCurrentAge() > 0 && animal.getCurrentAge() % animal.getReproductiveRate() == 0) {
+                        animal.breed(animal);
+                    }
+                }));
+    }
+
+    /**
+     * Initiates the process of adding animals to a chosen ecosystem.
+     * Displays a list of allowed animals and prompts the user to select one or more for creation.
+     *
+     * @param chosenEcosystem the ecosystem to which animals will be added
+     */
+    private void addAnimalsToEcosystem(Ecosystem chosenEcosystem, Scanner input) {
+        animalFactory.printAllowedAnimals(chosenEcosystem.getBiome());
+        handleAnimalCreation(input, chosenEcosystem);
+    }
+
+    /**
+     * Handles the user input loop for creating animals within a chosen ecosystem.
+     * Prompts the user to repeatedly create animals until they choose to stop.
+     *
+     * @param input           the Scanner used for reading user input
+     * @param chosenEcosystem the ecosystem to which animals will be added
+     */
+    private void handleAnimalCreation(Scanner input, Ecosystem chosenEcosystem) {
+        System.out.println("Print animal kind: ");
+        String kind = input.nextLine();
+        System.out.println("Print animal group: ");
+        String group = input.nextLine();
+        createMultipleAnimals(input, kind, group, chosenEcosystem);
+    }
+
+    /**
      * Returns the Biome enum constant matching the provided number of biome
      *
      * @param biomeNumber the number of the biome
@@ -323,6 +315,23 @@ public class SimulationRunner {
      */
     protected Biome getBiome(int biomeNumber) {
         return values()[biomeNumber];
+    }
+
+    /**
+     * Validates input and creates animals if successful.
+     * @return true if input was invalid (retry needed), false if successful.
+     */
+    private boolean handleAnimalCreationInput(Scanner input, String kind, String group, Ecosystem ecosystem) {
+        if (input.hasNextInt()) {
+            int amount = input.nextInt();
+            input.nextLine();
+            animalFactory.createAnimals(ecosystem, kind, group, amount);
+            return false;
+        } else {
+            System.out.println("Invalid input! Please enter a valid integer.");
+            input.nextLine();
+            return true;
+        }
     }
 
     /**
