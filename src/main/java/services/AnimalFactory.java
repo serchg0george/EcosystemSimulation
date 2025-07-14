@@ -89,10 +89,11 @@ public class AnimalFactory {
      */
     public void printAllowedAnimals(Biome currentBiome) {
         System.out.println("Which animal to create? Pick from the list below: ");
+        System.out.println("Kind / Type / Living type");
         animals.forEach((animalKind, animalFunction) -> {
             Animal sampleAnimal = animalFunction.apply("");
             if (sampleAnimal.getBiomes().contains(currentBiome)) {
-                System.out.println(animalKind);
+                System.out.println(animalKind + " | " + sampleAnimal.getAnimalType() + " | " + sampleAnimal.getLivingType());
             }
         });
     }

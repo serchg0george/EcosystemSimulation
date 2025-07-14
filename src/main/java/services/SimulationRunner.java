@@ -77,6 +77,11 @@ public class SimulationRunner {
         while (isContinueCreation) {
             System.out.println("Will you want to add another animal/-s? Y/N");
             if (input.nextLine().equalsIgnoreCase("n")) {
+                System.out.println("""
+                        --------------------------------------------
+                        STARTING SIMULATION
+                        --------------------------------------------
+                        """);
                 isContinueCreation = false;
             } else {
                 addAnimalsToEcosystem(chosenEcosystem, input);
@@ -93,7 +98,12 @@ public class SimulationRunner {
      */
     protected void runSimulationLoop(Ecosystem chosenEcosystem, int iterationNumber) {
         while (!chosenEcosystem.hasExtinctAnimalType()) {
-            System.out.println("Iteration number " + iterationNumber);
+            System.out.printf("""
+                    %n
+                    --------------------------------------------
+                    Iteration number %d
+                    --------------------------------------------
+                    %n""", iterationNumber);
             ageAllAnimals(chosenEcosystem);
             processBreeding(chosenEcosystem);
             executeLifecyclePhase(chosenEcosystem);
@@ -258,7 +268,7 @@ public class SimulationRunner {
      * from the given ecosystem.
      *
      * @param ecosystem the ecosystem containing the animal group data
-     * @param type the {@link AnimalType} (e.g., CARNIVORE or HERBIVORE) whose groups are to be retrieved
+     * @param type      the {@link AnimalType} (e.g., CARNIVORE or HERBIVORE) whose groups are to be retrieved
      * @return a collection of animal group lists for the specified type
      */
     protected Collection<List<Animal>> getAnimalGroupsByType(Ecosystem ecosystem, AnimalType type) {
