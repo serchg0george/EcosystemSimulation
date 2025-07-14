@@ -2,9 +2,9 @@ package services;
 
 import static enums.AnimalType.CARNIVORE;
 import static enums.AnimalType.HERBIVORE;
-import static enums.Biome.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static enums.Biome.DESERT;
+import static enums.Biome.SAVANNA;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import enums.AnimalType;
 import enums.Biome;
@@ -44,6 +44,122 @@ class SimulationRunnerTest {
     }
 
     @Test
+    void testProcessBreeding_whenAgeNotDivisibleByRate_thenNoBreed() {
+        //given
+        Ecosystem ecosystem = mock(Ecosystem.class);
+        Animal mockAnimal = mock(Animal.class);
+        when(mockAnimal.getCurrentAge()).thenReturn(5);
+        when(mockAnimal.getReproductiveRate()).thenReturn(10);
+
+        when(ecosystem.getEcosystemGroupedAnimals())
+                .thenReturn(Map.of(
+                        CARNIVORE, Map.of("Lions", List.of(mockAnimal)),
+                        HERBIVORE, Map.of("Gazelles", List.of(mockAnimal))
+                ));
+
+        //when
+        simulationRunner.processBreeding(ecosystem);
+
+        //then
+        verify(mockAnimal, never()).breed(any());
+    }
+
+    @Test
+    void testCreateMultipleAnimals_whenInvalidThenValid_thenFactoryInvokedOnce() {
+        //given
+        Ecosystem eco = mock(Ecosystem.class);
+        String input = """
+                foo
+                2
+                """;
+        ByteArrayInputStream in = new ByteArrayInputStream(input.getBytes());
+        Scanner sc = new Scanner(in);
+
+        //when
+        simulationRunner.createMultipleAnimals(sc, "Lion", "Pride", eco);
+
+        //then
+        verify(mockedAnimalFactory, times(1)).createAnimals(eco, "Lion", "Pride", 2);
+    }
+
+    @Test
+    void testSelectRandomAnimal_whenSingleAnimal_thenReturn() {
+        //given
+        Collection<List<Animal>> animalGroups = new ArrayList<>();
+        Animal expectedAnimal = mock(Animal.class);
+        when(expectedAnimal.isAlive()).thenReturn(true);
+        animalGroups.add(List.of(expectedAnimal));
+
+        //when
+        Animal result = simulationRunner.selectRandomAnimal(animalGroups);
+
+        //then
+        assertEquals(expectedAnimal, result);
+    }
+
+    @Test
+    void testSelectOrCreateEcosystem_whenCreateNew_thenReturnsNewEcosystem() {
+        //given
+        List<Ecosystem> ecosystems = new ArrayList<>();
+        Scanner input = new Scanner(new ByteArrayInputStream("2\n0\n".getBytes()));
+
+        //when
+        Ecosystem result = simulationRunner.selectOrCreateEcosystem(ecosystems, input);
+
+        //then
+        assertEquals(SAVANNA, result.getBiome());
+        assertEquals(1, ecosystems.size());
+    }
+
+    @Test
+    void testGetBiome_whenIndexOutOfBounds_thenThrowsException() {
+        //given
+        int invalidIndex = Biome.values().length;
+
+        //when/then
+        assertThrows(ArrayIndexOutOfBoundsException.class,
+                () -> simulationRunner.getBiome(invalidIndex));
+    }
+
+    @Test
+    void testPickEcosystem_whenNegativeIndex_thenThrowsException() {
+        //given
+        List<Ecosystem> ecosystems = List.of(
+                new Ecosystem(SAVANNA, new EnumMap<>(AnimalType.class), mockedProbabilitiesService)
+        );
+
+        //when/then
+        assertThrows(IndexOutOfBoundsException.class,
+                () -> simulationRunner.pickEcosystem(ecosystems, -1));
+    }
+
+    @Test
+    void testRunSimulationLoop_whenExtinctImmediately_thenExitsLoop() {
+        //given
+        Ecosystem ecosystem = mock(Ecosystem.class);
+        when(ecosystem.hasExtinctAnimalType()).thenReturn(true);
+
+        //when
+        simulationRunner.runSimulationLoop(ecosystem, 1);
+
+        //then
+        verify(ecosystem, never()).increaseHungerOfCarnivore(any());
+    }
+
+    @Test
+    void testPromptForAnimalCreation_whenUserStopsImmediately_thenNoAnimalsCreated() {
+        //given
+        Scanner input = new Scanner(new ByteArrayInputStream("n\n".getBytes()));
+        Ecosystem ecosystem = mock(Ecosystem.class);
+
+        //when
+        simulationRunner.promptForAnimalCreation(input, ecosystem);
+
+        //then
+        verify(ecosystem, never()).addAnimalToEcosystem(any());
+    }
+
+    @Test
     void testCreateEcosystem_whenValidBiomeProvided_thenEcosystemCreatedWithThatBiome() {
         //given
         String input = "3\n";
@@ -62,7 +178,8 @@ class SimulationRunnerTest {
         //given
         Ecosystem ecosystem = mock(Ecosystem.class);
         Animal mockAnimal = mock(Animal.class);
-        when(mockAnimal.getCurrentAge()).thenReturn(2);
+        when(mockAnimal.getCurrentAge()).thenReturn(10);
+        when(mockAnimal.getReproductiveRate()).thenReturn(10);
 
         when(ecosystem.getEcosystemGroupedAnimals())
                 .thenReturn(Map.of(
@@ -71,7 +188,7 @@ class SimulationRunnerTest {
                 ));
 
         //when
-        simulationRunner.processBreeding(ecosystem, 2);
+        simulationRunner.processBreeding(ecosystem);
 
         //then
         verify(mockAnimal, times(2)).breed(mockAnimal);

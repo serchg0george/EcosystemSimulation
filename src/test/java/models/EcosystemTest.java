@@ -11,6 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import enums.AnimalType;
 import enums.Biome;
+import exceptions.AnimalNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -47,6 +48,126 @@ class EcosystemTest {
         ecosystemAnimals.put(CARNIVORE, groupedCarnivores);
         ecosystemAnimals.put(HERBIVORE, groupedHerbivores);
         ecosystem = new Ecosystem(SAVANNA, ecosystemAnimals, mockedProbabilitiesService);
+    }
+
+    @Test
+    void testAttack_whenPredatorNotFound_thenThrowAnimalNotFoundException() {
+        //given
+        ecosystem.addAnimalToEcosystem(zebra);
+        long nonExistingPredatorId = 9999L;
+
+        //when
+        Executable attackAction = () -> ecosystem.attack(nonExistingPredatorId, zebra.getId());
+
+        //then
+        assertThrows(AnimalNotFoundException.class, attackAction, "Should throw when predator not found");
+    }
+
+    @Test
+    void testAttack_whenVictimNotFound_thenThrowAnimalNotFoundException() {
+        //given
+        ecosystem.addAnimalToEcosystem(hyenaOne);
+        long nonExistingVictimId = 9999L;
+
+        //when
+        Executable attackAction = () -> ecosystem.attack(hyenaOne.getId(), nonExistingVictimId);
+
+        //then
+        assertThrows(AnimalNotFoundException.class, attackAction, "Should throw when victim not found");
+    }
+
+    @Test
+    void testAttack_whenAttackNotSucceed_thenHungerNotReduced() {
+        //given
+        ecosystem.addAnimalToEcosystem(gazelle);
+        ecosystem.addAnimalToEcosystem(hyenaOne);
+        double initialHunger = hyenaOne.getCurrentHunger();
+        when(mockedProbabilitiesService.getChanceForAttack()).thenReturn(100);
+
+        //when
+        ecosystem.attack(hyenaOne.getId(), gazelle.getId());
+
+        //then
+        assertEquals(initialHunger, hyenaOne.getCurrentHunger(), "Hunger should not change after failed attack");
+        assertTrue(groupedHerbivores.get(GAZELLE_GROUP_NAME).contains(gazelle), "Gazelle should remain in ecosystem");
+    }
+
+    @Test
+    void testAddAnimalToEcosystem_whenNewGroup_thenCreatesNewGroup() {
+        //given
+        String newGroupName = "newGroup";
+        Herbivore antelope = new Herbivore(biomes, 10, true, 30, 50, 8, LAND, HERBIVORE, "ANTELOPE", GROUP, true, 75, newGroupName);
+        int initialGroupCount = groupedHerbivores.size();
+
+        //when
+        ecosystem.addAnimalToEcosystem(antelope);
+
+        //then
+        assertEquals(initialGroupCount + 1, groupedHerbivores.size(), "Should add new group");
+        assertTrue(groupedHerbivores.containsKey(newGroupName), "New group should be created");
+        assertEquals(1, groupedHerbivores.get(newGroupName).size(), "Animal should be in new group");
+    }
+
+    @Test
+    void testIncreaseHungerOfCarnivore_whenStarved_thenRemovesAnimal() {
+        //given
+        ecosystem.addAnimalToEcosystem(hyenaOne);
+        List<Animal> hyenaGroup = groupedCarnivores.get(HYENA_GROUP_NAME);
+        int initialGroupSize = hyenaGroup.size();
+
+        // Max out hunger to kill animal
+        for (int i = 0; i < 20; i++) {
+            hyenaOne.increaseHunger();
+        }
+
+        //when
+        ecosystem.increaseHungerOfCarnivore(groupedCarnivores);
+
+        //then
+        assertEquals(initialGroupSize - 1, hyenaGroup.size(), "Starved animal should be removed");
+    }
+
+    @Test
+    void testAttack_whenPredatorIsHerbivore_thenThrowClassCastException() {
+        //given
+        ecosystem.addAnimalToEcosystem(zebra);
+        ecosystem.addAnimalToEcosystem(gazelle);
+
+        //when
+        Executable attackAction = () -> ecosystem.attack(zebra.getId(), gazelle.getId());
+
+        //then
+        assertThrows(ClassCastException.class, attackAction, "Should throw when predator is herbivore");
+    }
+
+    @Test
+    void testAttack_whenGroupExtinctAfterAttack_thenRemovesGroup() {
+        //given
+        ecosystem.addAnimalToEcosystem(cheetah);
+        ecosystem.addAnimalToEcosystem(zebra);
+        when(mockedProbabilitiesService.getChanceForAttack()).thenReturn(0);
+        int initialHerbivoreGroups = groupedHerbivores.size();
+
+        //when
+        ecosystem.attack(cheetah.getId(), zebra.getId());
+
+        //then
+        assertFalse(groupedHerbivores.containsKey(zebra.getGroupName()), "Loner group should be removed");
+        assertEquals(initialHerbivoreGroups - 1, groupedCarnivores.size(), "Carnivore groups should decrease");
+    }
+
+    @Test
+    void testAddAnimalToEcosystem_whenFirstAnimalOfType_thenInitializesType() {
+        //given
+        Map<AnimalType, Map<String, List<Animal>>> emptyAnimals = new EnumMap<>(AnimalType.class);
+        Ecosystem newEcosystem = new Ecosystem(SAVANNA, emptyAnimals, mockedProbabilitiesService);
+
+        //when
+        newEcosystem.addAnimalToEcosystem(zebra);
+
+        //then
+        assertTrue(newEcosystem.getEcosystemGroupedAnimals().containsKey(HERBIVORE), "Herbivore type should be initialized");
+        assertEquals(1, newEcosystem.getEcosystemGroupedAnimals().get(HERBIVORE).size(), "Should have one herbivore group");
     }
 
     @Test
