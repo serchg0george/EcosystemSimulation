@@ -24,6 +24,7 @@ class SimulationRunnerTest {
 
     private final ProbabilitiesService mockedProbabilitiesService = mock(ProbabilitiesService.class);
     private final AnimalFactory mockedAnimalFactory = mock(AnimalFactory.class);
+    private final FeedingService mockedFeedingService = mock(FeedingService.class);
     private SimulationRunner simulationRunner;
 
     private final InputStream originalIn = System.in;
@@ -32,7 +33,7 @@ class SimulationRunnerTest {
 
     @BeforeEach
     void setUp() {
-        simulationRunner = new SimulationRunner(mockedProbabilitiesService, mockedAnimalFactory);
+        simulationRunner = new SimulationRunner(mockedProbabilitiesService, mockedAnimalFactory, mockedFeedingService);
         outputCapture = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outputCapture));
     }
@@ -125,7 +126,7 @@ class SimulationRunnerTest {
     void testPickEcosystem_whenNegativeIndex_thenThrowsException() {
         //given
         List<Ecosystem> ecosystems = List.of(
-                new Ecosystem(SAVANNA, new EnumMap<>(AnimalType.class), mockedProbabilitiesService)
+                new Ecosystem(SAVANNA, new EnumMap<>(AnimalType.class), mockedProbabilitiesService, mockedFeedingService)
         );
 
         //when/then
@@ -217,7 +218,7 @@ class SimulationRunnerTest {
     void testPickEcosystem_whenValidIndex_thenReturnsCorrectEcosystem() {
         //given
         List<Ecosystem> ecosystems = List.of(
-                new Ecosystem(SAVANNA, new EnumMap<>(AnimalType.class), mockedProbabilitiesService)
+                new Ecosystem(SAVANNA, new EnumMap<>(AnimalType.class), mockedProbabilitiesService, mockedFeedingService)
         );
 
         //when

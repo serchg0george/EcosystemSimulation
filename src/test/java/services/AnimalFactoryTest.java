@@ -15,7 +15,8 @@ import java.util.Map;
 class AnimalFactoryTest {
     private final Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals = new EnumMap<>(AnimalType.class);
     private final ProbabilitiesService probabilitiesService = mock(ProbabilitiesService.class);
-    private final Ecosystem ecosystem = new Ecosystem(SAVANNA, ecosystemGroupedAnimals, probabilitiesService);
+    private final FeedingService feedingService = mock(FeedingService.class);
+    private final Ecosystem ecosystem = new Ecosystem(SAVANNA, ecosystemGroupedAnimals, probabilitiesService, feedingService);
     private final AnimalFactory animalFactory = new AnimalFactory();
 
     @Test

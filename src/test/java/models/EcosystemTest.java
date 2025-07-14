@@ -15,6 +15,7 @@ import exceptions.AnimalNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+import services.FeedingService;
 import services.ProbabilitiesService;
 
 import java.util.*;
@@ -25,6 +26,7 @@ class EcosystemTest {
     private static final String GAZELLE_GROUP_NAME = "gazelle test";
     private static final String LONERS_GROUP = "Loners";
     private final ProbabilitiesService mockedProbabilitiesService = mock(ProbabilitiesService.class);
+    private final FeedingService feedingService = new FeedingService();
     private final Set<Biome> biomes = Set.of(SAVANNA);
     private final Herbivore zebra = new Herbivore(biomes, 10, true, 50, 300, 10, LAND, HERBIVORE, "ZEBRA", GROUP, true, 80, ZEBRA_GROUP_NAME);
     private final Herbivore gazelle = new Herbivore(biomes, 10, true, 25, 25, 5, LAND, HERBIVORE, "GAZELLE", GROUP, true, 80, GAZELLE_GROUP_NAME);
@@ -47,7 +49,7 @@ class EcosystemTest {
         groupedCarnivores.put(LONERS_GROUP, new ArrayList<>());
         ecosystemAnimals.put(CARNIVORE, groupedCarnivores);
         ecosystemAnimals.put(HERBIVORE, groupedHerbivores);
-        ecosystem = new Ecosystem(SAVANNA, ecosystemAnimals, mockedProbabilitiesService);
+        ecosystem = new Ecosystem(SAVANNA, ecosystemAnimals, mockedProbabilitiesService, feedingService);
     }
 
     @Test
@@ -160,7 +162,7 @@ class EcosystemTest {
     void testAddAnimalToEcosystem_whenFirstAnimalOfType_thenInitializesType() {
         //given
         Map<AnimalType, Map<String, List<Animal>>> emptyAnimals = new EnumMap<>(AnimalType.class);
-        Ecosystem newEcosystem = new Ecosystem(SAVANNA, emptyAnimals, mockedProbabilitiesService);
+        Ecosystem newEcosystem = new Ecosystem(SAVANNA, emptyAnimals, mockedProbabilitiesService, feedingService);
 
         //when
         newEcosystem.addAnimalToEcosystem(zebra);

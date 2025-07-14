@@ -19,12 +19,14 @@ import java.util.*;
 public class SimulationRunner {
     private final ProbabilitiesService probabilitiesService;
     private final AnimalFactory animalFactory;
+    private final FeedingService feedingService;
     private final Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals = new EnumMap<>(AnimalType.class);
     private final Random random = new Random();
 
-    public SimulationRunner(ProbabilitiesService probabilitiesService, AnimalFactory animalFactory) {
+    public SimulationRunner(ProbabilitiesService probabilitiesService, AnimalFactory animalFactory, FeedingService feedingService) {
         this.probabilitiesService = probabilitiesService;
         this.animalFactory = animalFactory;
+        this.feedingService = feedingService;
         Map<String, List<Animal>> lonerCarnivores = new HashMap<>();
         Map<String, List<Animal>> lonerHerbivores = new HashMap<>();
         ecosystemGroupedAnimals.put(CARNIVORE, lonerCarnivores);
@@ -36,9 +38,9 @@ public class SimulationRunner {
      * processes animal population setup, and executes the simulation loop until extinction occurs.
      */
     public void startSimulation() {
-        final Ecosystem savanna = new Ecosystem(SAVANNA, ecosystemGroupedAnimals, probabilitiesService);
-        final Ecosystem tundra = new Ecosystem(TUNDRA, ecosystemGroupedAnimals, probabilitiesService);
-        final Ecosystem desert = new Ecosystem(DESERT, ecosystemGroupedAnimals, probabilitiesService);
+        final Ecosystem savanna = new Ecosystem(SAVANNA, ecosystemGroupedAnimals, probabilitiesService, feedingService);
+        final Ecosystem tundra = new Ecosystem(TUNDRA, ecosystemGroupedAnimals, probabilitiesService, feedingService);
+        final Ecosystem desert = new Ecosystem(DESERT, ecosystemGroupedAnimals, probabilitiesService, feedingService);
         final List<Ecosystem> ecosystems = new ArrayList<>();
         ecosystems.add(savanna);
         ecosystems.add(tundra);
@@ -113,7 +115,7 @@ public class SimulationRunner {
      * Processes breeding for all animals. Animals breed when their age is divisible
      * by the current iteration number.
      *
-     * @param ecosystem       Ecosystem containing animals to breed
+     * @param ecosystem Ecosystem containing animals to breed
      */
     protected void processBreeding(Ecosystem ecosystem) {
         Collection<List<Animal>> carnivores = getCarnivoreGroups(ecosystem);
@@ -232,7 +234,7 @@ public class SimulationRunner {
         }
         biome = getBiome(input.nextInt());
         input.nextLine();
-        return new Ecosystem(biome, ecosystemGroupedAnimals, probabilitiesService);
+        return new Ecosystem(biome, ecosystemGroupedAnimals, probabilitiesService, feedingService);
     }
 
     /**
@@ -319,6 +321,7 @@ public class SimulationRunner {
 
     /**
      * Validates input and creates animals if successful.
+     *
      * @return true if input was invalid (retry needed), false if successful.
      */
     private boolean handleAnimalCreationInput(Scanner input, String kind, String group, Ecosystem ecosystem) {
