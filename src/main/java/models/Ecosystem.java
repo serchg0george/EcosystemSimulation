@@ -39,7 +39,9 @@ public class Ecosystem {
     public void attack(long predatorId, long victimId) {
         Carnivore predator = (Carnivore) findAnimalById(predatorId, ecosystemGroupedAnimals);
         Herbivore victim = (Herbivore) findAnimalById(victimId, ecosystemGroupedAnimals);
+        System.out.println("Predator " + predator.getAnimalKind() + " applied attack attempt onto " + victim.getAnimalKind());
         if (isAttackSucceed(predator, victim)) {
+            System.out.println("Succeed attack!");
             decreaseHunger(predator, victim);
             System.out.println(victim.getAnimalKind() + " WAS KILLED!");
             removeDeadAnimal(victim);
@@ -114,8 +116,9 @@ public class Ecosystem {
     private void decreaseHunger(Carnivore predator, Herbivore victim) {
         if (!predator.isInGroup()) {
             decreaseLonerHunger(predator, victim);
+        } else {
+            decreaseGroupHunger(predator, victim);
         }
-        decreaseGroupHunger(predator, victim);
     }
 
     /**
@@ -136,9 +139,10 @@ public class Ecosystem {
      * Feeds a solitary predator after a successful attack, decreasing its hunger.
      *
      * @param predator the solitary carnivore
-     * @param victim the herbivore that was killed
+     * @param victim   the herbivore that was killed
      */
     private void feedLoner(Carnivore predator, Herbivore victim) {
+        System.out.println("Hunger of " + predator.getAnimalKind() + " was decreased!");
         double initHunger = predator.getCurrentHunger();
         double updatedHunger = calculateHungerDecreaseAmount(predator, victim);
         if (isUpdatedHungerGreaterThanInitial(updatedHunger, initHunger, predator)) return;
@@ -153,6 +157,7 @@ public class Ecosystem {
      * @param victim   the herbivore that was attacked
      */
     private void decreaseGroupHunger(Carnivore predator, Herbivore victim) {
+        System.out.println("Hunger of " + predator.getAnimalKind() + " and its group " + predator.getGroupName() + " was decreased!");
         List<Animal> predatorGroup = ecosystemGroupedAnimals.get(predator.getAnimalType()).get(predator.getGroupName());
         double hungerDecreasePerAnimal = calculateHungerDecreaseAmount(predator, victim) / ((double) predatorGroup.size() + 1);
         predatorGroup.forEach(groupMember -> feedGroupMember(predator, (Carnivore) groupMember, hungerDecreasePerAnimal));
@@ -161,8 +166,8 @@ public class Ecosystem {
     /**
      * Feeds a specific member of the predator's group, either the main attacker or a supporting carnivore.
      *
-     * @param predator the main attacking carnivore
-     * @param groupMember a member of the predator's group to feed
+     * @param predator                the main attacking carnivore
+     * @param groupMember             a member of the predator's group to feed
      * @param hungerDecreasePerAnimal the base amount of hunger decrease per group member
      */
     private void feedGroupMember(Carnivore predator, Carnivore groupMember, double hungerDecreasePerAnimal) {
@@ -179,7 +184,7 @@ public class Ecosystem {
      * Feeds the main attacker in a group attack, decreasing its hunger by twice the base amount.
      *
      * @param hungerDecreasePerAnimal the base amount of hunger decrease per group member
-     * @param attacker the main attacking carnivore
+     * @param attacker                the main attacking carnivore
      */
     private void feedAttackerWithinGroup(double hungerDecreasePerAnimal, Carnivore attacker) {
         if (isUpdatedHungerGreaterThanInitial(hungerDecreasePerAnimal, attacker.getCurrentHunger(), attacker)) {
@@ -193,7 +198,7 @@ public class Ecosystem {
      * Feeds a supporting carnivore in the group, decreasing its hunger by the base amount.
      *
      * @param hungerDecreasePerAnimal the base amount of hunger decrease
-     * @param supportingCarnivore a supporting carnivore in the group
+     * @param supportingCarnivore     a supporting carnivore in the group
      */
     private void feedSupportersWithinGroup(double hungerDecreasePerAnimal, Carnivore supportingCarnivore) {
         double calculatedHunger = supportingCarnivore.getCurrentHunger() - hungerDecreasePerAnimal;
@@ -206,6 +211,7 @@ public class Ecosystem {
      * @param target the dead animal to remove
      */
     private void removeDeadAnimal(Animal target) {
+        System.out.println("Dead animal " + target.getAnimalKind() + " was removed!");
         ecosystemGroupedAnimals.get(target.getAnimalType())
                 .get(target.getGroupName())
                 .removeIf(animal -> animal.getId() == target.getId());
@@ -220,6 +226,7 @@ public class Ecosystem {
      * @param target an animal whose group is extinct
      */
     private void removeExtinctGroup(Animal target) {
+        System.out.println("Group " + target.getGroupName() + " extincted and was removed!");
         ecosystemGroupedAnimals.get(target.getAnimalType()).remove(target.getGroupName());
     }
 
@@ -280,7 +287,7 @@ public class Ecosystem {
         if (victim.isInGroup()) {
             escapePoints += calculateHerbivoreGroupBonus(escapePoints);
         }
-        int succeedAttackChance = (attackPoints / (attackPoints + escapePoints)) * 100;
+        int succeedAttackChance = (int) (((double) attackPoints / (attackPoints + escapePoints)) * 100);
 
         if (!isPredatorHavier(predator, victim)) {
             succeedAttackChance = calculateReducedSucceedAttackChance(succeedAttackChance, predator, victim);
@@ -297,8 +304,9 @@ public class Ecosystem {
      * @return returns reduced the chance of successful attack
      */
     private int calculateReducedSucceedAttackChance(int succeedChance, Carnivore predator, Herbivore victim) {
-        double reducedOn = (double) victim.getWeight() / (double) predator.getWeight();
-        return (int) (succeedChance / reducedOn) * 100;
+        double ratio = (double) predator.getWeight() / victim.getWeight();
+        if (ratio >= 1) return succeedChance;
+        return (int) (succeedChance * ratio);
     }
 
     /**
