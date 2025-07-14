@@ -176,7 +176,7 @@ public class Ecosystem {
      * @return returns the reduced chance of a successful attack
      */
     private int calculateReducedSucceedAttackChance(int succeedChance, Carnivore predator, Herbivore victim) {
-        double ratio = (double) predator.getWeight() / victim.getWeight();
+        double ratio = (double) victim.getWeight() / predator.getWeight();
         if (ratio >= 1) return succeedChance;
         return (int) (succeedChance * ratio);
     }
@@ -199,7 +199,8 @@ public class Ecosystem {
      * @return returns the calculated points
      */
     private int calculateScaledPoints(Animal animal) {
-        return 100 - (animal.getCurrentAge() * 100 / animal.getMaxAge());
+        double scaledPoints = 1 - ((double) animal.getCurrentAge() / animal.getMaxAge());
+        return (int) Math.round(scaledPoints);
     }
 
     /**
