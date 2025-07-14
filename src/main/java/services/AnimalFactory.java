@@ -72,7 +72,6 @@ public class AnimalFactory {
      */
     public void printAllowedAnimals(Biome currentBiome) {
         System.out.println("Which animal to create? Pick from the list below: ");
-
         animals.forEach((animalKind, animalFunction) -> {
             Animal sampleAnimal = animalFunction.apply("");
             if (sampleAnimal.getBiomes().contains(currentBiome)) {
