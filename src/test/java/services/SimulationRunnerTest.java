@@ -23,7 +23,7 @@ import java.util.*;
 class SimulationRunnerTest {
 
     private final ProbabilitiesService mockedProbabilitiesService = mock(ProbabilitiesService.class);
-    private final AnimalFactory mockedAnimalFactory = mock(AnimalFactory.class);
+    private final AnimalCreatorService mockedAnimalCreatorService = mock(AnimalCreatorService.class);
     private final FeedingService mockedFeedingService = mock(FeedingService.class);
     private SimulationRunner simulationRunner;
 
@@ -33,7 +33,7 @@ class SimulationRunnerTest {
 
     @BeforeEach
     void setUp() {
-        simulationRunner = new SimulationRunner(mockedProbabilitiesService, mockedAnimalFactory, mockedFeedingService);
+        simulationRunner = new SimulationRunner(mockedProbabilitiesService, mockedAnimalCreatorService, mockedFeedingService);
         outputCapture = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outputCapture));
     }
@@ -80,7 +80,7 @@ class SimulationRunnerTest {
         simulationRunner.createMultipleAnimals(sc, "Lion", "Pride", eco);
 
         //then
-        verify(mockedAnimalFactory, times(1)).createAnimals(eco, "Lion", "Pride", 2);
+        verify(mockedAnimalCreatorService, times(1)).createAnimals(eco, "Lion", "Pride", 2);
     }
 
     @Test
