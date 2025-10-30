@@ -1,4 +1,4 @@
-# Living Ecosystem Simulation 🦁🌿
+# Living Ecosystem Simulation
 
 [![Java Version](https://img.shields.io/badge/Java-21%2B-orange.svg)](https://www.oracle.com/java/)
 [![Build Tool](https://img.shields.io/badge/Build-Maven-blue.svg)](https://maven.apache.org/)
@@ -19,17 +19,17 @@ A sophisticated Java application that simulates dynamic wildlife ecosystems with
 
 ## Key Features
 
-### 🌍 Diverse Biomes
+### Diverse Biomes
 - **Savanna** - Vast grasslands with predator-prey dynamics
 - **Tundra** - Harsh cold environments
 - **Tropical Forest** - Dense vegetation ecosystems
 - **Desert** - Arid landscapes with scarce resources
 
-### 🦒 Animal Variety
+### Animal Variety
 - **Carnivores**: Lion, Tiger, Cheetah, Hyena
 - **Herbivores**: Zebra, Hare, Gazelle, Buffalo
 
-### ⚙️ Realistic Simulation Mechanics
+### Realistic Simulation Mechanics
 - **Predator-Prey Dynamics**: Sophisticated attack success calculations
 - **Hunger System**: Progressive hunger mechanics for carnivores
 - **Group Behaviors**: Cooperative hunting and herd defense
@@ -127,8 +127,8 @@ Add animals to your ecosystem:
 - **Repeat**: Continue adding different species until your ecosystem is complete
 
 **Available Animals**:
-- 🦁 **Carnivores**: Lion, Tiger, Cheetah, Hyena
-- 🦓 **Herbivores**: Zebra, Hare, Gazelle, Buffalo
+- **Carnivores**: Lion, Tiger, Cheetah, Hyena
+- **Herbivores**: Zebra, Hare, Gazelle, Buffalo
 
 #### 3. Run the Simulation
 Watch the ecosystem evolve through iterations:
@@ -258,4 +258,4 @@ Contributions are welcome! Here's how you can help:
 
 ---
 
-**Built with ❤️ using Java 21 and Maven**
+**Built with Java 21 and Maven**
