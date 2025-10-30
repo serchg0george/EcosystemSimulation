@@ -7,7 +7,7 @@ package services;
  * <ol>
  *   <li>Creating a {@link ProbabilitiesService} instance to handle probability calculations</li>
  *   <li>Creating an {@link FeedingService} instance to handle feeding process</li>
- *   <li>Creating an {@link AnimalFactory} instance to generate animal entities</li>
+ *   <li>Creating an {@link AnimalCreatorService} instance to generate animal entities</li>
  *   <li>Initializing a {@link SimulationRunner} with these services</li>
  *   <li>Starting the simulation process</li>
  * </ol>
@@ -17,15 +17,15 @@ package services;
  *
  * @see ProbabilitiesService
  * @see FeedingService
- * @see AnimalFactory
+ * @see AnimalCreatorService
  * @see SimulationRunner
  */
 public class Main {
     public static void main(String[] args) {
         final ProbabilitiesService probabilitiesService = new ProbabilitiesService();
         final FeedingService feedingService = new FeedingService();
-        final AnimalFactory animalFactory = new AnimalFactory();
-        SimulationRunner runner = new SimulationRunner(probabilitiesService, animalFactory, feedingService);
+        final AnimalCreatorService animalCreatorService = new AnimalCreatorService();
+        SimulationRunner runner = new SimulationRunner(probabilitiesService, animalCreatorService, feedingService);
         runner.startSimulation();
     }
 }

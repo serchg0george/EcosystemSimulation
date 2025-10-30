@@ -1,6 +1,10 @@
 package models;
 
-import enums.*;
+import enums.AnimalType;
+import enums.Biome;
+import enums.Habitat;
+import enums.LivingType;
+import exceptions.InvalidBreedingException;
 
 import java.util.Set;
 
@@ -39,22 +43,24 @@ public class Herbivore extends Animal {
      */
     @Override
     public Animal breed(Animal animal) {
-        final int initialAge = 0;
-        System.out.println("New herbivore " + animal.getAnimalKind() + " was born!");
-        return new Herbivore(
-                animal.getBiomes(),
-                initialAge,
-                animal.isAlive(),
-                animal.getMaxAge(),
-                animal.getWeight(),
-                animal.getReproductiveRate(),
-                getMainHabitat(),
-                getAnimalType(),
-                getAnimalKind(),
-                animal.getLivingType(),
-                animal.isInGroup(),
-                getEscapePoints(),
-                animal.getGroupName());
+        if (animal instanceof Herbivore) {
+            System.out.println("New herbivore " + animal.getAnimalKind() + " was born!");
+            return new Herbivore(
+                    animal.getBiomes(),
+                    0,
+                    animal.isAlive(),
+                    animal.getMaxAge(),
+                    animal.getWeight(),
+                    animal.getReproductiveRate(),
+                    getMainHabitat(),
+                    getAnimalType(),
+                    getAnimalKind(),
+                    animal.getLivingType(),
+                    animal.isInGroup(),
+                    getEscapePoints(),
+                    animal.getGroupName());
+        }
+        throw new InvalidBreedingException("Expected " + getAnimalKind() + " animal kind but was " + animal.getAnimalKind() + "!");
     }
 
     public int getEscapePoints() {

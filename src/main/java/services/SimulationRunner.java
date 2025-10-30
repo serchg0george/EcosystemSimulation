@@ -18,14 +18,14 @@ import java.util.*;
  */
 public class SimulationRunner {
     private final ProbabilitiesService probabilitiesService;
-    private final AnimalFactory animalFactory;
+    private final AnimalCreatorService animalCreatorService;
     private final FeedingService feedingService;
     private final Map<AnimalType, Map<String, List<Animal>>> ecosystemGroupedAnimals = new EnumMap<>(AnimalType.class);
     private final Random random = new Random();
 
-    public SimulationRunner(ProbabilitiesService probabilitiesService, AnimalFactory animalFactory, FeedingService feedingService) {
+    public SimulationRunner(ProbabilitiesService probabilitiesService, AnimalCreatorService animalCreatorService, FeedingService feedingService) {
         this.probabilitiesService = probabilitiesService;
-        this.animalFactory = animalFactory;
+        this.animalCreatorService = animalCreatorService;
         this.feedingService = feedingService;
         Map<String, List<Animal>> lonerCarnivores = new HashMap<>();
         Map<String, List<Animal>> lonerHerbivores = new HashMap<>();
@@ -306,7 +306,7 @@ public class SimulationRunner {
      * @param chosenEcosystem the ecosystem to which animals will be added
      */
     private void addAnimalsToEcosystem(Ecosystem chosenEcosystem, Scanner input) {
-        animalFactory.printAllowedAnimals(chosenEcosystem.getBiome());
+        animalCreatorService.printAllowedAnimals(chosenEcosystem.getBiome());
         handleAnimalCreation(input, chosenEcosystem);
     }
 
@@ -344,7 +344,7 @@ public class SimulationRunner {
         if (input.hasNextInt()) {
             int amount = input.nextInt();
             input.nextLine();
-            animalFactory.createAnimals(ecosystem, kind, group, amount);
+            animalCreatorService.createAnimals(ecosystem, kind, group, amount);
             return false;
         } else {
             System.out.println("Invalid input! Please enter a valid integer.");

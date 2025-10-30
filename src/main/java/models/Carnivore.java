@@ -4,6 +4,7 @@ import enums.AnimalType;
 import enums.Biome;
 import enums.Habitat;
 import enums.LivingType;
+import exceptions.InvalidBreedingException;
 
 import java.util.Set;
 
@@ -46,23 +47,25 @@ public class Carnivore extends Animal {
      */
     @Override
     public Animal breed(Animal animal) {
-        final int initialAge = 0;
-        System.out.println("New carnivore " + animal.getAnimalKind() + " was born!");
-        return new Carnivore(
-                animal.getBiomes(),
-                initialAge,
-                animal.isAlive(),
-                animal.getMaxAge(),
-                animal.getMaxAge(),
-                animal.getReproductiveRate(),
-                getMainHabitat(),
-                getAnimalType(),
-                getLivingType(),
-                getAnimalKind(),
-                animal.isInGroup(),
-                getAttackPoints(),
-                getGroupName(),
-                getHungerRate());
+        if (animal instanceof Carnivore) {
+            System.out.println("New carnivore " + animal.getAnimalKind() + " was born!");
+            return new Carnivore(
+                    animal.getBiomes(),
+                    0,
+                    animal.isAlive(),
+                    animal.getMaxAge(),
+                    animal.getMaxAge(),
+                    animal.getReproductiveRate(),
+                    getMainHabitat(),
+                    getAnimalType(),
+                    getLivingType(),
+                    getAnimalKind(),
+                    animal.isInGroup(),
+                    getAttackPoints(),
+                    getGroupName(),
+                    getHungerRate());
+        }
+        throw new InvalidBreedingException("Expected " + getAnimalKind() + " animal kind but was " + animal.getAnimalKind() + "!");
     }
 
     /**
